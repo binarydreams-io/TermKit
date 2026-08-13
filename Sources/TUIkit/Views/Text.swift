@@ -1,0 +1,210 @@
+//  🖥️ TUIKit — Terminal UI Kit for Swift
+//  Text.swift
+//
+//  Created by LAYERED.work
+//  License: MIT
+
+/// A view that displays text in the terminal.
+///
+/// `Text` is one of the most fundamental views in TUIkit. It displays
+/// a string in the terminal and supports various formatting options.
+///
+/// # Example
+///
+/// ```swift
+/// Text("Hello, World!")
+///
+/// Text("Bold")
+///     .bold()
+///
+/// Text("Colored")
+///     .foregroundStyle(.red)
+/// ```
+public struct Text: View, Equatable {
+  /// The text to display.
+  let content: String
+
+  /// The style of the text (color, formatting, etc.).
+  var style: TextStyle
+
+  /// Creates a text view with the specified string.
+  ///
+  /// - Parameter content: The text to display.
+  public init(_ content: String) {
+    self.content = content
+    self.style = TextStyle()
+  }
+
+  /// Creates a text view with a verbatim string.
+  ///
+  /// - Parameter verbatim: The text to display verbatim.
+  public init(verbatim: String) {
+    self.content = verbatim
+    self.style = TextStyle()
+  }
+
+  public var body: Never {
+    fatalError("Text is a primitive view and renders directly")
+  }
+}
+
+// MARK: - Text Modifiers
+
+extension Text {
+  /// Sets the text foreground style.
+  ///
+  /// - Parameter style: The desired foreground color.
+  /// - Returns: A new text with the applied style.
+  public func foregroundStyle(_ style: Color) -> Text {
+    var copy = self
+    copy.style.foregroundColor = style
+    return copy
+  }
+
+  /// Sets the background color.
+  ///
+  /// - Parameter color: The desired background color.
+  /// - Returns: A new text with the applied background color.
+  public func backgroundColor(_ color: Color) -> Text {
+    var copy = self
+    copy.style.backgroundColor = color
+    return copy
+  }
+
+  /// Makes the text bold.
+  ///
+  /// - Returns: A new text with bold formatting.
+  public func bold() -> Text {
+    var copy = self
+    copy.style.isBold = true
+    return copy
+  }
+
+  /// Makes the text italic.
+  ///
+  /// - Returns: A new text with italic formatting.
+  public func italic() -> Text {
+    var copy = self
+    copy.style.isItalic = true
+    return copy
+  }
+
+  /// Underlines the text.
+  ///
+  /// - Returns: A new text with underline formatting.
+  public func underline() -> Text {
+    var copy = self
+    copy.style.isUnderlined = true
+    return copy
+  }
+
+  /// Strikes through the text.
+  ///
+  /// - Returns: A new text with strikethrough formatting.
+  public func strikethrough() -> Text {
+    var copy = self
+    copy.style.isStrikethrough = true
+    return copy
+  }
+
+  /// Dims the text (reduced intensity).
+  ///
+  /// - Returns: A new text with dimmed appearance.
+  public func dim() -> Text {
+    var copy = self
+    copy.style.isDim = true
+    return copy
+  }
+
+  /// Makes the text blink (if supported by the terminal).
+  ///
+  /// - Returns: A new text with blink effect.
+  public func blink() -> Text {
+    var copy = self
+    copy.style.isBlink = true
+    return copy
+  }
+
+  /// Inverts foreground and background colors.
+  ///
+  /// - Returns: A new text with inverted colors.
+  public func inverted() -> Text {
+    var copy = self
+    copy.style.isInverted = true
+    return copy
+  }
+}
+
+// MARK: - Text Rendering
+
+extension Text: Renderable, Layoutable {
+  public func sizeThatFits(proposal: ProposedSize, context: RenderContext) -> ViewSize {
+    // Text has a fixed size based on its content.
+    // If a width is proposed, we may word-wrap.
+    let maxWidth = proposal.width ?? context.availableWidth
+    let wrappedLines = wordWrap(content, maxWidth: maxWidth)
+
+    let width = wrappedLines.map(\.count).max() ?? 0
+    let height = wrappedLines.count
+
+    // Text is never flexible - it has a fixed size
+    return ViewSize.fixed(width, height)
+  }
+
+  public func renderToBuffer(context: RenderContext) -> FrameBuffer {
+    var effectiveStyle = style
+
+    // If no explicit foreground color is set on the Text itself,
+    // inherit from the environment (set by .foregroundStyle() on parent views),
+    // or fall back to the palette's default foreground color
+    if effectiveStyle.foregroundColor == nil {
+      effectiveStyle.foregroundColor = context.environment.foregroundStyle
+        ?? context.environment.palette.foreground
+    }
+
+    let resolvedStyle = effectiveStyle.resolved(with: context.environment.palette)
+
+    // Word-wrap text to fit available width
+    let wrappedLines = wordWrap(content, maxWidth: context.availableWidth)
+
+    // Apply styling to each line
+    let styledLines = wrappedLines.map { ANSIRenderer.render($0, with: resolvedStyle) }
+
+    return FrameBuffer(lines: styledLines)
+  }
+
+  /// Wraps text into lines that fit a maximum character width.
+  ///
+  /// Splits on word boundaries (spaces). Words longer than `maxWidth`
+  /// are placed on their own line without further splitting.
+  ///
+  /// - Parameters:
+  ///   - text: The text to wrap.
+  ///   - maxWidth: Maximum characters per line.
+  /// - Returns: An array of wrapped lines (never empty).
+  private func wordWrap(_ text: String, maxWidth: Int) -> [String] {
+    guard maxWidth > 0 else { return [text] }
+
+    let words = text.split(separator: " ", omittingEmptySubsequences: false)
+    var lines: [String] = []
+    var currentLine = ""
+
+    for word in words {
+      let wordStr = String(word)
+      if currentLine.isEmpty {
+        currentLine = wordStr
+      } else if currentLine.count + 1 + wordStr.count <= maxWidth {
+        currentLine += " " + wordStr
+      } else {
+        lines.append(currentLine)
+        currentLine = wordStr
+      }
+    }
+
+    if !currentLine.isEmpty {
+      lines.append(currentLine)
+    }
+
+    return lines.isEmpty ? [""] : lines
+  }
+}

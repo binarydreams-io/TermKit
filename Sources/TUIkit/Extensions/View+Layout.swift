@@ -1,0 +1,187 @@
+//  🖥️ TUIKit — Terminal UI Kit for Swift
+//  View+Layout.swift
+//
+//  Created by LAYERED.work
+//  License: MIT
+
+// MARK: - Border
+
+extension View {
+  /// Adds a border around this view.
+  ///
+  /// Content is inset by 1 character on each side so text doesn't touch
+  /// the border characters. The total width overhead is 4 characters
+  /// (2 for borders + 2 for inner padding).
+  ///
+  /// Internally this creates a `ContainerView` without title or footer,
+  /// ensuring consistent padding and rendering across all bordered views.
+  ///
+  /// # Example
+  ///
+  /// ```swift
+  /// Text("Hello")
+  ///     .border()  // Uses appearance.borderStyle
+  ///
+  /// Text("Rounded")
+  ///     .border(.rounded, color: .cyan)
+  ///
+  /// Text("Double")
+  ///     .border(.doubleLine, color: .yellow)
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - style: The border style (default: appearance borderStyle).
+  ///   - color: The border color (default: theme border color).
+  /// - Returns: A view with a border.
+  public func border(
+    _ style: BorderStyle? = nil,
+    color: Color? = nil
+  ) -> some View {
+    ContainerView(
+      style: ContainerStyle(
+        showHeaderSeparator: false,
+        showFooterSeparator: false,
+        borderStyle: style,
+        borderColor: color
+      )
+    ) {
+      self
+    }
+  }
+}
+
+// MARK: - Dimmed
+
+extension View {
+  /// Applies a dimming effect to the view content.
+  ///
+  /// This reduces the visual intensity of the content using the ANSI dim
+  /// escape code. Useful for background content when displaying overlays.
+  ///
+  /// # Example
+  ///
+  /// ```swift
+  /// VStack {
+  ///     Text("This content will be dimmed")
+  ///     Text("All text is affected")
+  /// }
+  /// .dimmed()
+  /// ```
+  ///
+  /// - Returns: A view with the dimming effect applied.
+  public func dimmed() -> some View {
+    DimmedModifier(content: self)
+  }
+}
+
+// MARK: - Background
+
+extension View {
+  /// Adds a background color to this view.
+  ///
+  /// # Example
+  ///
+  /// ```swift
+  /// Text("Warning!")
+  ///     .foregroundStyle(.black)
+  ///     .background(.yellow)
+  ///
+  /// VStack {
+  ///     Text("Header")
+  /// }
+  /// .background(.blue)
+  /// ```
+  ///
+  /// - Parameter color: The background color.
+  /// - Returns: A view with the background color applied.
+  public func background(_ color: Color) -> some View {
+    modifier(BackgroundModifier(color: color))
+  }
+}
+
+// MARK: - Frame
+
+extension View {
+  /// Sets an explicit frame size for this view.
+  ///
+  /// The content is aligned within the frame according to the specified alignment.
+  ///
+  /// # Example
+  ///
+  /// ```swift
+  /// Text("Hello")
+  ///     .frame(width: 20, alignment: .center)
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - width: The desired width in characters (nil preserves intrinsic width).
+  ///   - height: The desired height in lines (nil preserves intrinsic height).
+  ///   - alignment: The alignment within the frame (default: .topLeading).
+  /// - Returns: A view constrained to the specified frame.
+  public func frame(
+    width: Int? = nil,
+    height: Int? = nil,
+    alignment: Alignment = .topLeading
+  ) -> some View {
+    FlexibleFrameView(
+      content: self,
+      minWidth: width,
+      idealWidth: width,
+      maxWidth: width.map { .fixed($0) },
+      minHeight: height,
+      idealHeight: height,
+      maxHeight: height.map { .fixed($0) },
+      alignment: alignment
+    )
+  }
+
+  /// Sets flexible frame constraints for this view.
+  ///
+  /// Use `.infinity` for maxWidth/maxHeight to expand to fill available space.
+  ///
+  /// # Examples
+  ///
+  /// ```swift
+  /// // Expand to full width
+  /// Text("Hello")
+  ///     .frame(maxWidth: .infinity)
+  ///
+  /// // Expand to full size
+  /// Color.blue
+  ///     .frame(maxWidth: .infinity, maxHeight: .infinity)
+  ///
+  /// // Minimum size with expansion
+  /// Text("Button")
+  ///     .frame(minWidth: 10, maxWidth: .infinity)
+  /// ```
+  ///
+  /// - Parameters:
+  ///   - minWidth: Minimum width in characters.
+  ///   - idealWidth: Preferred width (used when no max is set).
+  ///   - maxWidth: Maximum width, or `.infinity` to fill available space.
+  ///   - minHeight: Minimum height in lines.
+  ///   - idealHeight: Preferred height (used when no max is set).
+  ///   - maxHeight: Maximum height, or `.infinity` to fill available space.
+  ///   - alignment: The alignment within the frame (default: .center).
+  /// - Returns: A view with flexible frame constraints.
+  public func frame(
+    minWidth: Int? = nil,
+    idealWidth: Int? = nil,
+    maxWidth: FrameDimension? = nil,
+    minHeight: Int? = nil,
+    idealHeight: Int? = nil,
+    maxHeight: FrameDimension? = nil,
+    alignment: Alignment = .center
+  ) -> some View {
+    FlexibleFrameView(
+      content: self,
+      minWidth: minWidth,
+      idealWidth: idealWidth,
+      maxWidth: maxWidth,
+      minHeight: minHeight,
+      idealHeight: idealHeight,
+      maxHeight: maxHeight,
+      alignment: alignment
+    )
+  }
+}

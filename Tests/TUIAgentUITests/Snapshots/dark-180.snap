@@ -1,0 +1,231 @@
+agent-ui-semantic-matrix-v1
+width=180 scheme=dark
+color role=primary rgba=E2E8F0FF
+color role=secondary rgba=97A6B8FF
+color role=accent rgba=50A6FFFF
+color role=error rgba=FF6976FF
+color role=warning rgba=F0B850FF
+color role=success rgba=56C982FF
+color role=info rgba=50A6FFFF
+color role=text rgba=E2E8F0FF
+color role=mutedText rgba=97A6B8FF
+color role=background rgba=0E141BFF
+color role=panel rgba=18202AFF
+color role=element rgba=252F3BFF
+color role=menu rgba=18202AFF
+color role=borderRegular rgba=5B6A7CFF
+color role=borderActive rgba=50A6FFFF
+color role=borderSubtle rgba=374452FF
+color role=diffAddition rgba=5BD689FF
+color role=diffDeletion rgba=FF7782FF
+color role=diffContext rgba=97A6B8FF
+color role=diffAdditionBackground rgba=18412BFF
+color role=diffDeletionBackground rgba=4F242BFF
+color role=markdownHeading rgba=E2E8F0FF
+color role=markdownLink rgba=50A6FFFF
+color role=markdownCode rgba=D591EEFF
+color role=syntaxKeyword rgba=DC8BFFFF
+color role=syntaxString rgba=7DD998FF
+color role=syntaxNumber rgba=FFAE67FF
+color role=syntaxComment rgba=97A6B8FF
+color role=syntaxType rgba=61CAFFFF
+color role=selectedBackground rgba=50A6FFFF
+color role=selectedText rgba=000000FF
+component prompt
+grid width=125 height=3
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=element
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=element
+cells x=0..<1 y=1 text="▌" style=0
+cells x=1..<68 y=1 text="  Fix the semantic renderer without changing package configuration." style=1
+cells x=0..<125 y=2 text="▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄" style=0
+node path=0 id="agent-prompt" role=group label="Ask anything" value=null state=0 actions=[] frame=0,0,125,3
+node path=0.0 id="agent-prompt-editor" role=textEditor label="Ask anything" value=null state=0 actions=[focus,submit] frame=0,0,125,3
+component autocomplete
+grid width=180 height=2
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=body attributes=0 link=null continuation=0 background=default
+style 3 width=1 role=body attributes=1 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="  " style=0
+cells x=2..<10 y=0 text="command " style=1
+cells x=10..<15 y=0 text="/test" style=2
+cells x=15..<34 y=0 text="  Run focused tests" style=1
+cells x=0..<2 y=1 text="▌ " style=0
+cells x=2..<7 y=1 text="file " style=1
+cells x=7..<22 y=1 text="Rendering.swift" style=3
+node path=0 id="prompt-autocomplete" role=menu label="Prompt suggestions" value=null state=0 actions=[] frame=0,0,180,2
+node path=0.0 id="prompt-autocomplete-item-0" role=menuItem label="/test" value="Run focused tests" state=0 actions=[activate,focus] frame=null
+node path=0.1 id="prompt-autocomplete-item-1" role=menuItem label="Rendering.swift" value=null state=1 actions=[activate,focus] frame=null
+component attachment
+grid width=180 height=1
+style 0 width=1 role=inlineCode attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+cells x=0..<6 y=0 text=" file " style=0
+cells x=6..<20 y=0 text="Package.swift " style=1
+cells x=20..<21 y=0 text="×" style=2
+node path=0 id="attachment-chip" role=button label="file attachment: Package.swift" value=null state=0 actions=[dismiss,focus] frame=0,0,180,1
+component toast
+grid width=180 height=1
+style 0 width=1 role=diagnostic attributes=0 link=null continuation=0 background=default
+cells x=0..<14 y=0 text="▌ Build failed" style=0
+node path=0 id="toast" role=status label="Build failed" value=null state=0 actions=[] frame=0,0,180,1
+component user-message
+grid width=180 height=5
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=panel
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=panel
+style 2 width=1 role=muted attributes=0 link=null continuation=0 background=panel
+cells x=0..<1 y=1 text="▌" style=0
+cells x=1..<33 y=1 text="  Inspect the semantic renderer." style=1
+cells x=0..<3 y=2 text="▌  " style=0
+cells x=3..<16 y=2 text="Package.swift" style=2
+cells x=0..<8 y=3 text="   10:42" style=2
+node path=0 id="user-message" role=group label="Inspect the semantic renderer." value=null state=0 actions=[] frame=0,0,180,5
+component reasoning
+grid width=180 height=2
+style 0 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=default
+cells x=0..<28 y=0 text="▾ Thought · Renderer · 350ms" style=0
+cells x=0..<19 y=1 text="Checked cell widths" style=1
+node path=0 id="reasoning" role=button label="Thought" value=null state=16 actions=[activate] frame=0,0,180,2
+component tool-call
+grid width=180 height=1
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="✓ " style=0
+cells x=2..<19 y=0 text="Run focused tests" style=1
+node path=0 id="tool-call" role=group label="Run focused tests" value=null state=0 actions=[] frame=0,0,180,1
+component tool-result
+grid width=180 height=2
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=panel
+style 1 width=1 role=muted attributes=0 link=null continuation=0 background=panel
+style 2 width=1 role=body attributes=0 link=null continuation=0 background=panel
+cells x=0..<2 y=0 text="▌ " style=0
+cells x=2..<6 y=0 text="Read" style=1
+cells x=0..<2 y=1 text="▌ " style=0
+cells x=2..<10 y=1 text="48 lines" style=2
+node path=0 id="tool-result" role=group label="Read" value=null state=0 actions=[] frame=0,0,180,2
+component shell-result
+grid width=180 height=4
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=code attributes=1 link=null continuation=0 background=default
+style 2 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 3 width=1 role=code attributes=0 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="$ " style=0
+cells x=2..<12 y=0 text="swift test" style=1
+cells x=0..<8 y=1 text="~/TUIkit" style=2
+cells x=0..<3 y=2 text="one" style=3
+cells x=0..<3 y=3 text="two" style=3
+node path=0 id="shell-result" role=group label="swift test" value=null state=0 actions=[] frame=0,0,180,4
+component diff
+grid width=180 height=3
+style 0 width=1 role=heading(3) attributes=1 link=null continuation=0 background=default
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=diffHunk attributes=0 link=null continuation=0 background=default
+style 3 width=1 role=lineNumber attributes=0 link=null continuation=0 background=default
+style 4 width=1 role=diffRemoved attributes=0 link=null continuation=0 background=default
+style 5 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 6 width=1 role=diffAdded attributes=0 link=null continuation=0 background=default
+cells x=0..<31 y=0 text="Renderer.swift → Renderer.swift" style=0
+cells x=31..<180 y=0 text="                                                                                                                                                     " style=1
+cells x=0..<15 y=1 text="@@ -1,1 +1,1 @@" style=2
+cells x=15..<180 y=1 text="                                                                                                                                                                     " style=1
+cells x=0..<5 y=2 text="   1 " style=3
+cells x=5..<20 y=2 text="invalidateAll()" style=4
+cells x=20..<88 y=2 text="                                                                    " style=1
+cells x=88..<91 y=2 text=" │ " style=5
+cells x=91..<96 y=2 text="   1 " style=3
+cells x=96..<111 y=2 text="invalidate(row)" style=6
+cells x=111..<180 y=2 text="                                                                     " style=1
+node path=0 id="diff-view" role=textEditor label="invalidateAll()\ninvalidate(row)" value=null state=0 actions=[] frame=0,0,180,3
+component diagnostics
+grid width=180 height=1
+style 0 width=1 role=diagnostic attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=muted attributes=0 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="! " style=0
+cells x=2..<17 y=0 text="App.swift:7:12 " style=1
+cells x=17..<29 y=0 text="Unused value" style=0
+node path=0 id="diagnostics" role=list label="Diagnostics" value=null state=0 actions=[focus] frame=0,0,180,1
+node path=0.0 id="diagnostic-0" role=button label="Unused value" value=null state=0 actions=[activate] frame=null
+component conversation
+grid width=180 height=5
+style 0 width=1 role=body attributes=0 link=null continuation=0 background=default
+cells x=0..<3 y=0 text="Old" style=0
+cells x=0..<16 y=2 text="Visible response" style=0
+cells x=0..<6 y=4 text="Newest" style=0
+node path=0 id="conversation" role=scrollView label="Conversation" value=null state=2 actions=[scrollBackward,scrollForward] frame=0,0,180,5
+node path=0.0 id="conversation-item-0" role=group label="Old" value=null state=0 actions=[] frame=null
+node path=0.1 id="conversation-item-1" role=group label="Visible response" value=null state=0 actions=[] frame=null
+node path=0.2 id="conversation-item-2" role=group label="Newest" value=null state=0 actions=[] frame=null
+component assistant-message
+grid width=180 height=5
+style 0 width=1 role=body attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=diagnostic attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=muted attributes=0 link=null continuation=0 background=default
+cells x=0..<13 y=0 text="Build failed." style=0
+cells x=0..<19 y=1 text="Checked diagnostics" style=0
+cells x=0..<18 y=2 text="Read Package.swift" style=0
+cells x=0..<11 y=3 text="One warning" style=1
+cells x=0..<23 y=4 text="build · swift-6 · 350ms" style=2
+node path=0 id="assistant-message" role=group label="Assistant response" value=null state=0 actions=[] frame=0,0,180,5
+node path=0.0 id="assistant-markdown" role=group label="Response" value="1" state=0 actions=[] frame=null
+node path=0.1 id="assistant-reasoning" role=group label="Reasoning" value="1" state=0 actions=[] frame=null
+node path=0.2 id="assistant-tools" role=group label="Tool activity" value="1" state=0 actions=[] frame=null
+node path=0.3 id="assistant-diagnostics" role=group label="Diagnostics" value="1" state=0 actions=[] frame=null
+component permission
+grid width=180 height=5
+style 0 width=1 role=diagnostic attributes=1 link=null continuation=0 background=default
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 3 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+cells x=0..<19 y=0 text="Permission required" style=0
+cells x=0..<22 y=1 text="Delete generated files" style=1
+cells x=0..<8 y=2 text="• .build" style=2
+cells x=0..<2 y=3 text="  " style=3
+cells x=2..<6 y=3 text="Deny" style=1
+cells x=0..<2 y=4 text="▌ " style=3
+cells x=2..<12 y=4 text="Allow once" style=0
+node path=0 id="permission-prompt" role=dialog label="Delete generated files" value=null state=264 actions=[focus] frame=0,0,180,5
+node path=0.0 id="permission-choice-0" role=button label="Deny" value=null state=0 actions=[activate] frame=null
+node path=0.1 id="permission-choice-1" role=button label="Allow once" value=null state=8 actions=[activate] frame=null
+component question
+grid width=180 height=2
+style 0 width=1 role=heading(3) attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=body attributes=0 link=null continuation=0 background=default
+cells x=0..<18 y=0 text="1. Select a target" style=0
+cells x=0..<4 y=1 text="  ○ " style=1
+cells x=4..<14 y=1 text="TUIAgentUI" style=2
+node path=0 id="question-prompt" role=dialog label="Questions" value=null state=256 actions=[dismiss,focus,setValue,submit] frame=0,0,180,2
+node path=0.0 id="question-0-agent" role=listItem label="TUIAgentUI" value=null state=0 actions=[activate] frame=null
+component todo
+grid width=180 height=2
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=muted attributes=0 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="○ " style=0
+cells x=2..<16 y=0 text="Compile target" style=1
+cells x=0..<21 y=1 text="  Warnings are errors" style=2
+node path=0 id="todo-item" role=listItem label="Compile target" value=null state=0 actions=[] frame=0,0,180,2
+component sidebar
+grid width=32 height=3
+style 0 width=1 role=heading(3) attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=default
+cells x=0..<5 y=0 text="Files" style=0
+cells x=0..<15 y=1 text="  Package.swift" style=1
+cells x=0..<17 y=2 text="  Rendering.swift" style=1
+node path=0 id="session-sidebar" role=group label="Session sidebar" value=null state=0 actions=[] frame=0,0,32,3
+node path=0.0 id="sidebar-section-0" role=group label="Files" value=null state=0 actions=[] frame=null
+component status
+grid width=180 height=1
+style 0 width=1 role=muted attributes=0 link=null continuation=0 background=default
+cells x=0..<25 y=0 text="swift-6 Build 42% context" style=0
+node path=0 id="agent-status" role=status label="swift-6 Build 42% context" value=null state=0 actions=[] frame=0,0,180,1
+node path=0.0 id="status-field-0" role=status label="model" value="swift-6" state=0 actions=[] frame=null
+node path=0.1 id="status-field-1" role=status label="agent" value="Build" state=0 actions=[] frame=null
+node path=0.2 id="status-field-2" role=status label="contextUsage" value="42% context" state=0 actions=[] frame=null
+component pulse
+grid width=180 height=1
+style 0 width=1 role=muted attributes=0 link=null continuation=0 background=default
+cells x=0..<180 y=0 text="                                                                                        ····                                                                                        " style=0
+node path=0 id="background-pulse" role=progressIndicator label="Background pulse" value=null state=32 actions=[] frame=0,0,180,1

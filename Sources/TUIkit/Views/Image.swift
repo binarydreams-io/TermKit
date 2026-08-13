@@ -1,0 +1,225 @@
+//  🖥️ TUIKit — Terminal UI Kit for Swift
+//  Image.swift
+//
+//  Created by LAYERED.work
+//  License: MIT
+
+import Foundation
+
+// MARK: - Image Source
+
+/// Describes where to load an image from.
+public enum ImageSource: Sendable, Equatable {
+  /// Load from a local file path.
+  case file(String)
+
+  /// Load from a URL (cached per session).
+  case url(String)
+}
+
+// MARK: - Image Loading Phase
+
+/// Represents the current state of an async image loading operation.
+enum ImageLoadingPhase: Sendable {
+  /// Loading has not started yet or is in progress.
+  case loading
+
+  /// The raw image was successfully loaded and is ready for conversion.
+  case success(RGBAImage)
+
+  /// Loading failed with an error.
+  case failure(String)
+}
+
+// MARK: - Image
+
+/// Displays an image as colored ASCII art in the terminal.
+///
+/// `Image` loads a raster image from a file path or URL, converts it to
+/// colored ASCII characters, and displays it at the specified size.
+/// Loading happens asynchronously; a placeholder is shown while loading.
+///
+/// ## Usage
+///
+/// ```swift
+/// // From a local file
+/// Image(.file("/path/to/logo.png"))
+///     .frame(width: 60, height: 30)
+///
+/// // From a URL (cached per session)
+/// Image(.url("https://example.com/photo.png"))
+///     .frame(width: 40, height: 20)
+///
+/// // With rendering options
+/// Image(.file("photo.png"))
+///     .imageCharacterSet(.braille)
+///     .imageColorMode(.trueColor)
+///     .imageDithering(.floydSteinberg)
+///     .frame(width: 80, height: 40)
+/// ```
+///
+/// ## Placeholder
+///
+/// While loading, a centered placeholder is displayed. By default this is
+/// a ``Spinner``. Use ``View/imagePlaceholder(_:)`` to customize.
+public struct Image: View {
+  /// The image source (file path or URL).
+  let source: ImageSource
+
+  /// Creates an image from the given source.
+  ///
+  /// - Parameter source: The image source (file or URL).
+  public init(_ source: ImageSource) {
+    self.source = source
+  }
+
+  public var body: some View {
+    _ImageCore(source: source)
+  }
+}
+
+// MARK: - Equatable
+
+extension Image: @preconcurrency Equatable {
+  public static func == (lhs: Image, rhs: Image) -> Bool {
+    lhs.source == rhs.source
+  }
+}
+
+// MARK: - Environment Keys
+
+/// Environment key for the ASCII character set used by Image.
+private struct ImageCharacterSetKey: EnvironmentKey {
+  static let defaultValue: ASCIICharacterSet = .blocks
+}
+
+/// Environment key for the color mode used by Image.
+private struct ImageColorModeKey: EnvironmentKey {
+  static let defaultValue: ASCIIColorMode = .trueColor
+}
+
+/// Environment key for the dithering mode used by Image.
+private struct ImageDitheringKey: EnvironmentKey {
+  static let defaultValue: DitheringMode = .none
+}
+
+/// Environment key for the placeholder text shown while loading.
+private struct ImagePlaceholderTextKey: EnvironmentKey {
+  static let defaultValue: String? = nil
+}
+
+/// Environment key controlling whether a spinner is shown while loading.
+private struct ImagePlaceholderSpinnerKey: EnvironmentKey {
+  static let defaultValue: Bool = true
+}
+
+/// Environment key for the image content mode.
+private struct ImageContentModeKey: EnvironmentKey {
+  static let defaultValue: ContentMode = .fit
+}
+
+/// Environment key for an explicit aspect ratio override.
+private struct ImageAspectRatioKey: EnvironmentKey {
+  static let defaultValue: Double? = nil
+}
+
+/// Environment key for the maximum allowed image pixel count.
+private struct ImageMaxPixelCountKey: EnvironmentKey {
+  static let defaultValue: Int? = nil
+}
+
+/// Environment key for the URL download timeout in seconds.
+private struct ImageURLTimeoutKey: EnvironmentKey {
+  static let defaultValue: TimeInterval = 30
+}
+
+/// Environment key for the runtime-owned image loader.
+private struct ImageLoaderKey: EnvironmentKey {
+  static var defaultValue: any ImageLoader {
+    PlatformImageLoader()
+  }
+}
+
+/// Environment key for the runtime-owned URL image cache.
+private struct ImageCacheKey: EnvironmentKey {
+  static var defaultValue: URLImageCache {
+    URLImageCache()
+  }
+}
+
+// MARK: - EnvironmentValues
+
+extension EnvironmentValues {
+  /// The character set for ASCII art rendering.
+  var imageCharacterSet: ASCIICharacterSet {
+    get { self[ImageCharacterSetKey.self] }
+    set { self[ImageCharacterSetKey.self] = newValue }
+  }
+
+  /// The color mode for ASCII art rendering.
+  var imageColorMode: ASCIIColorMode {
+    get { self[ImageColorModeKey.self] }
+    set { self[ImageColorModeKey.self] = newValue }
+  }
+
+  /// The dithering mode for ASCII art rendering.
+  var imageDithering: DitheringMode {
+    get { self[ImageDitheringKey.self] }
+    set { self[ImageDitheringKey.self] = newValue }
+  }
+
+  /// Custom placeholder text shown while loading (nil = no text).
+  var imagePlaceholderText: String? {
+    get { self[ImagePlaceholderTextKey.self] }
+    set { self[ImagePlaceholderTextKey.self] = newValue }
+  }
+
+  /// Whether to show a spinner in the placeholder.
+  var imagePlaceholderSpinner: Bool {
+    get { self[ImagePlaceholderSpinnerKey.self] }
+    set { self[ImagePlaceholderSpinnerKey.self] = newValue }
+  }
+
+  /// The content mode for image scaling.
+  var imageContentMode: ContentMode {
+    get { self[ImageContentModeKey.self] }
+    set { self[ImageContentModeKey.self] = newValue }
+  }
+
+  /// An explicit aspect ratio override for images (width/height).
+  ///
+  /// When `nil`, the source image's natural aspect ratio is used.
+  var imageAspectRatio: Double? {
+    get { self[ImageAspectRatioKey.self] }
+    set { self[ImageAspectRatioKey.self] = newValue }
+  }
+
+  /// The maximum allowed total pixel count for loaded images.
+  ///
+  /// Images exceeding this limit will fail with `ImageLoadError.imageTooLarge`.
+  /// `nil` means no limit (default).
+  var imageMaxPixelCount: Int? {
+    get { self[ImageMaxPixelCountKey.self] }
+    set { self[ImageMaxPixelCountKey.self] = newValue }
+  }
+
+  /// The timeout in seconds for URL image downloads.
+  ///
+  /// Defaults to 30 seconds.
+  var imageURLTimeout: TimeInterval {
+    get { self[ImageURLTimeoutKey.self] }
+    set { self[ImageURLTimeoutKey.self] = newValue }
+  }
+
+  /// Loader used for file and URL image requests in this runtime.
+  var imageLoader: any ImageLoader {
+    get { self[ImageLoaderKey.self] }
+    set { self[ImageLoaderKey.self] = newValue }
+  }
+
+  /// URL image cache owned by this runtime.
+  var imageCache: URLImageCache {
+    get { self[ImageCacheKey.self] }
+    set { self[ImageCacheKey.self] = newValue }
+  }
+}

@@ -1,0 +1,13 @@
+localized-frame	TUIPerformanceTests.RenderPipelinePerformanceTests/localizedAnimation()	p95 < 8 ms for a localized 120x40 frame
+full-repaint	TUIPerformanceTests.RenderPipelinePerformanceTests/fullRepaint()	p95 < 16.67 ms for a 200x60 repaint
+unchanged-frame	TUIPerformanceTests.RenderPipelinePerformanceTests/unchangedFrame()	zero paint passes, operations, and writes
+idle-wakeup	TUIPerformanceTests.IdleSystemTests/noPeriodicIdleWake()	no event before the explicit wake during 100 ms
+ordinary-write	TUIPerformanceTests.RenderPipelinePerformanceTests/oneLogicalWrite()	exactly one logical write for one changed frame
+lazy-transcript	TUIPerformanceTests.ScalabilityPerformanceTests/lazyConversation()	p95 < 8 ms and at most 24 mounted rows for 10,000 items
+local-tool-row	TUIPerformanceTests.ScalabilityPerformanceTests/localToolRowMutation()	p95 < 8 ms with one layout pass and one paint pass
+bounded-interner	TUIPerformanceTests.ScalabilityPerformanceTests/boundedInternerRebuild()	at most 16 entries and 2,048 bytes before controlled rebuild
+bounded-frame-queue	TUIPerformanceTests.SchedulerPerformanceTests/coalescing()	100,000 invalidations produce one frame and no queued frame
+bounded-frame-queue	TUIPerformanceTests.SchedulerPerformanceTests/noStaleQueue()	a stalled animation produces no stale queued frame
+idle-wakeup	TUIPerformanceTests.SchedulerPerformanceTests/idleHasNoDeadline()	an idle scheduler has no frame or deadline
+localized-frame	TUIPerformanceTests.RenderPipelinePerformanceTests/declarativePaintAnimation()	p95 < 8 ms with no reconciliation or layout
+local-tool-row	TUIPerformanceTests.ScalabilityPerformanceTests/oneRowDamage()	exactly one 120-cell row is scanned and painted

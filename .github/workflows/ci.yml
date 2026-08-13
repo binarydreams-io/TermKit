@@ -1,0 +1,223 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+    tags: ["*"]
+  pull_request:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+
+jobs:
+  reference-snapshots:
+    name: "Legacy TUIkit regression: SwiftUI reference snapshots"
+    runs-on: macos-26
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Generate stable SwiftUI snapshots
+        env:
+          DEVELOPER_DIR: /Applications/Xcode_26.6.app/Contents/Developer
+        run: |
+          source scripts/toolchain.env
+          test "$DEVELOPER_DIR" = "$SWIFTUI_REFERENCE_XCODE_PATH"
+          test -d "$DEVELOPER_DIR"
+          API_BUILD_PATH="$RUNNER_TEMP/api-reference-tool"
+          swift build \
+            --package-path Tools/APICompatibility \
+            --build-path "$API_BUILD_PATH" \
+            -Xswiftc -warnings-as-errors
+          API_TOOL="$(swift build \
+            --package-path Tools/APICompatibility \
+            --build-path "$API_BUILD_PATH" \
+            --show-bin-path)/TUIkitAPICheck"
+          SNAPSHOT_OUTPUT="$RUNNER_TEMP/swiftui-reference-snapshots"
+          mkdir -p "$SNAPSHOT_OUTPUT"
+          ./scripts/generate-swiftui-reference-snapshots.sh \
+            --tool "$API_TOOL" \
+            --developer-dir "$DEVELOPER_DIR" \
+            --output-root "$SNAPSHOT_OUTPUT"
+
+      - name: Upload stable SwiftUI snapshots
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: swiftui-reference-snapshots
+          path: |
+            ${{ runner.temp }}/swiftui-reference-snapshots/snapshots
+            ${{ runner.temp }}/swiftui-reference-snapshots/sources
+            ${{ runner.temp }}/swiftui-reference-snapshots/sources.tsv
+            ${{ runner.temp }}/swiftui-reference-snapshots/snapshot-set.json
+          if-no-files-found: error
+
+  macos:
+    name: SwiftTUI macOS and legacy TUIkit regression
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Select Swift 6.0.3
+        run: |
+          test -d /Applications/Xcode_16.2.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Run deterministic quality gate
+        env:
+          TUIKIT_API_SNAPSHOT_OUTPUT: ${{ runner.temp }}/tuikit-macos-snapshots
+          SWIFTTUI_TAGGED_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+        run: ./scripts/test-linux.sh macos
+
+      - name: Upload macOS API snapshots
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tuikit-macos-snapshots
+          path: |
+            ${{ runner.temp }}/tuikit-macos-snapshots/snapshots
+            ${{ runner.temp }}/tuikit-macos-snapshots/sources
+          if-no-files-found: error
+
+      - name: Archive SwiftTUI DocC output
+        run: tar -czf "$RUNNER_TEMP/docc-output.tar.gz" -C docc-output .
+
+      - name: Upload SwiftTUI DocC output
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: swifttui-docc-output
+          path: ${{ runner.temp }}/docc-output.tar.gz
+          if-no-files-found: error
+
+  linux:
+    name: SwiftTUI Linux and legacy TUIkit regression
+    runs-on: ubuntu-24.04
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Run deterministic quality gate
+        env:
+          TUIKIT_API_SNAPSHOT_OUTPUT: ${{ runner.temp }}/tuikit-linux-snapshots
+          SWIFTTUI_TAGGED_VERSION: ${{ startsWith(github.ref, 'refs/tags/') && github.ref_name || '' }}
+        run: ./scripts/test-linux.sh linux
+
+      - name: Upload Linux API snapshots
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: tuikit-linux-snapshots
+          path: |
+            ${{ runner.temp }}/tuikit-linux-snapshots/snapshots
+            ${{ runner.temp }}/tuikit-linux-snapshots/sources
+          if-no-files-found: error
+
+  performance:
+    name: SwiftTUI release performance gate
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Select and verify Swift 6.0.3
+        run: |
+          source scripts/toolchain.env
+          test -d "$SWIFT_MACOS_XCODE_PATH"
+          sudo xcode-select --switch "$SWIFT_MACOS_XCODE_PATH"
+          swift --version | grep -F "Swift version $SWIFT_VERSION"
+
+      - name: Run discovered release benchmarks
+        run: ./scripts/swifttui-benchmark.sh
+
+  api-compatibility:
+    name: Legacy TUIkit API compatibility regression
+    needs: [reference-snapshots, macos, linux, performance]
+    runs-on: macos-15
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+
+      - name: Select Swift 6.0.3
+        run: |
+          test -d /Applications/Xcode_16.2.app/Contents/Developer
+          sudo xcode-select --switch /Applications/Xcode_16.2.app/Contents/Developer
+
+      - name: Download stable SwiftUI snapshots
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: swiftui-reference-snapshots
+          path: ${{ runner.temp }}/swiftui-reference-snapshots
+
+      - name: Download macOS API snapshots
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: tuikit-macos-snapshots
+          path: ${{ runner.temp }}/tuikit-macos-snapshots
+
+      - name: Download Linux API snapshots
+        uses: actions/download-artifact@d3f86a106a0bac45b974a628896c90dbdf5c8093 # v4.3.0
+        with:
+          name: tuikit-linux-snapshots
+          path: ${{ runner.temp }}/tuikit-linux-snapshots
+
+      - name: Assemble and verify API inputs
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          API_BUILD_PATH="$RUNNER_TEMP/api-compatibility-tool"
+          swift build \
+            --package-path Tools/APICompatibility \
+            --build-path "$API_BUILD_PATH" \
+            -Xswiftc -warnings-as-errors
+          API_TOOL="$(swift build \
+            --package-path Tools/APICompatibility \
+            --build-path "$API_BUILD_PATH" \
+            --show-bin-path)/TUIkitAPICheck"
+          OUTPUT_ROOT="$RUNNER_TEMP/api-compatibility-inputs"
+          TUIKIT_OUTPUT="$OUTPUT_ROOT/tuikit"
+          REFERENCE_OUTPUT="$OUTPUT_ROOT/reference"
+          mkdir -p \
+            "$TUIKIT_OUTPUT/sources" \
+            "$TUIKIT_OUTPUT/snapshots" \
+            "$REFERENCE_OUTPUT"
+          cp "$RUNNER_TEMP/tuikit-macos-snapshots/sources/"tuikit*.tsv "$TUIKIT_OUTPUT/sources/"
+          cp "$RUNNER_TEMP/tuikit-linux-snapshots/sources/"tuikit*.tsv "$TUIKIT_OUTPUT/sources/"
+          cp "$RUNNER_TEMP/tuikit-macos-snapshots/snapshots/"tuikit*.json "$TUIKIT_OUTPUT/snapshots/"
+          cp "$RUNNER_TEMP/tuikit-linux-snapshots/snapshots/"tuikit*.json "$TUIKIT_OUTPUT/snapshots/"
+          ./scripts/validate-public-api-parity.sh \
+            "$API_TOOL" \
+            "$RUNNER_TEMP/tuikit-macos-snapshots" \
+            "$RUNNER_TEMP/tuikit-linux-snapshots"
+          ./scripts/assemble-api-snapshot-set.sh \
+            --tool "$API_TOOL" \
+            --name "TUIkit Swift 6.0.3 macOS and Linux" \
+            --coverage Tools/APICompatibility/Configuration/tuikit-coverage.tsv \
+            --output-root "$TUIKIT_OUTPUT"
+          ./scripts/verify-compatibility-owner-registry.sh \
+            --tool "$API_TOOL" \
+            --registry Tools/APICompatibility/Configuration/owners.json \
+            --repository phranck/TUIkit \
+            --gh "$(command -v gh)"
+          cp -R "$RUNNER_TEMP/swiftui-reference-snapshots/snapshots" "$REFERENCE_OUTPUT/"
+          cp -R "$RUNNER_TEMP/swiftui-reference-snapshots/sources" "$REFERENCE_OUTPUT/"
+          cp "$RUNNER_TEMP/swiftui-reference-snapshots/sources.tsv" "$REFERENCE_OUTPUT/"
+          cp "$RUNNER_TEMP/swiftui-reference-snapshots/snapshot-set.json" "$REFERENCE_OUTPUT/"
+          ./scripts/verify-compatibility-manifest.sh \
+            --tool "$API_TOOL" \
+            --policy Tools/APICompatibility/Configuration/review-policy.json \
+            --owner-registry Tools/APICompatibility/Configuration/owners.json \
+            --reference-set "$REFERENCE_OUTPUT/snapshot-set.json" \
+            --tuikit-set "$TUIKIT_OUTPUT/snapshot-set.json" \
+            --contracts Tools/APICompatibility/Configuration/contracts.json \
+            --manifest Tools/APICompatibility/Configuration/compatibility-manifest.json
+
+      - name: Upload assembled API inputs
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: api-compatibility-inputs
+          path: ${{ runner.temp }}/api-compatibility-inputs
+          if-no-files-found: error

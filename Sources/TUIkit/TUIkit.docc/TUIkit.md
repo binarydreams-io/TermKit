@@ -1,0 +1,223 @@
+# ``TUIkit``
+
+A declarative, SwiftUI-like framework for building Terminal User Interfaces in Swift.
+
+@Metadata {
+    @DisplayName("TUIkit")
+    @PageImage(purpose: icon, source: "tuikit-logo", alt: "TUIkit Logo")
+    @PageImage(purpose: card, source: "tuikit-logo", alt: "TUIkit Logo")
+}
+
+## Overview
+
+TUIkit lets you build terminal applications using a familiar, declarative syntax inspired by SwiftUI. No ncurses, no C dependencies: pure Swift.
+
+```swift
+@main
+struct MyApp: App {
+    var body: some Scene {
+        WindowGroup {
+            VStack {
+                Text("Hello, TUIkit!")
+                    .bold()
+                    .foregroundColor(.cyan)
+                Button("Press me") {
+                    // handle action
+                }
+            }
+        }
+    }
+}
+```
+
+### Key Features
+
+- **Declarative syntax**: Build UIs with `VStack`, `HStack`, `Text`, `Button`, and more
+- **SwiftUI-like API**: `@State`, `@ViewBuilder`, environment values, modifiers
+- **Theming system**: 5 built-in phosphor themes with full RGB color support
+- **Focus management**: Keyboard-driven navigation between interactive elements
+- **Status bar**: Configurable shortcut bar with context stack
+- **No native dependencies**: Pure Swift rendering and image decoding, with no ncurses or other C libraries
+- **Cross-platform**: macOS and Linux
+
+## Topics
+
+### Essentials
+
+- <doc:GettingStarted>
+- <doc:Architecture>
+- <doc:AppLifecycle>
+- <doc:RenderCycle>
+
+### Guides
+
+- <doc:StateManagement>
+- <doc:ThemingGuide>
+- <doc:FocusSystem>
+- <doc:StatusBarGuide>
+- <doc:AppearanceAndColors>
+- <doc:Preferences>
+- <doc:CustomViews>
+- <doc:KeyboardShortcuts>
+- <doc:PaletteReference>
+- <doc:ListAndTable>
+- <doc:LayoutSystem>
+- <doc:ImageDecoding>
+
+### App Structure
+
+- ``App``
+- ``Scene``
+- ``WindowGroup``
+- ``renderOnce(content:)``
+
+### Views
+
+- ``View``
+- ``Text``
+- ``Image``
+- ``ImageSource``
+- ``EmptyView``
+- ``AnyView``
+- ``Spinner``
+- ``Divider``
+
+### Image Decoding
+
+- ``PlatformImageLoader``
+- ``ImageDecodingLimits``
+- ``ImageLoadError``
+- ``RGBAImage``
+- ``RGBA``
+
+### Interactive Controls
+
+- ``Button``
+- ``ButtonRole``
+- ``ButtonRow``
+- ``TextField``
+- ``SecureField``
+- ``Toggle``
+- ``Slider``
+- ``Stepper``
+- ``RadioButtonGroup``
+- ``RadioButtonItem``
+- ``Menu``
+- ``MenuItem``
+- ``ProgressView``
+
+### Layout
+
+- ``VStack``
+- ``HStack``
+- ``ZStack``
+- ``LazyVStack``
+- ``LazyHStack``
+- ``Spacer``
+- ``Section``
+- ``ForEach``
+- ``HorizontalAlignment``
+- ``VerticalAlignment``
+- ``Alignment``
+- ``ProposedSize``
+- ``ViewSize``
+
+### Containers
+
+- ``Card``
+- ``Panel``
+- ``Alert``
+- ``Dialog``
+- ``NavigationSplitView``
+
+### Data Collections
+
+- ``List``
+- ``Table``
+- ``TableColumn``
+- ``ColumnWidth``
+- ``SelectionMode``
+
+### State Management
+
+- ``State``
+- ``Binding``
+
+### Environment
+
+- ``EnvironmentKey``
+- ``EnvironmentValues``
+
+### Preference System
+
+- ``PreferenceKey``
+- ``PreferenceValues``
+
+### Theming
+
+- ``Palette``
+- ``SystemPalette``
+- ``Color``
+- ``TextStyle``
+
+### Appearance
+
+- ``Appearance``
+- ``BorderStyle``
+- ``ContentMode``
+- ``EdgeInsets``
+- ``Edge``
+
+### Styles
+
+- ``ButtonStyle``
+- ``ToggleStyle``
+- ``DefaultToggleStyle``
+- ``CheckboxToggleStyle``
+- ``SwitchToggleStyle``
+- ``TrackStyle``
+- ``ListStyle``
+- ``PlainListStyle``
+- ``InsetGroupedListStyle``
+- ``SpinnerStyle``
+- ``TextCursorStyle``
+- ``TextContentType``
+- ``NavigationSplitViewStyle``
+
+### View Composition
+
+- ``ViewBuilder``
+- ``ViewModifier``
+- ``ModifiedView``
+- ``EquatableView``
+
+### Focus System
+
+- ``FocusState``
+- ``Focusable``
+
+### Status Bar
+
+- ``StatusBar``
+- ``StatusBarState``
+- ``StatusBarItem``
+- ``StatusBarItemProtocol``
+- ``StatusBarStyle``
+- ``StatusBarAlignment``
+- ``Shortcut``
+
+### Input Handling
+
+- ``KeyEvent``
+- ``Key``
+- ``QuitBehavior``
+
+### Rendering
+
+- ``FrameBuffer``
+- ``RenderContext``
+
+### Persistence
+
+- ``AppStorage``
+- ``StorageBackend``

@@ -1,0 +1,154 @@
+agent-ui-semantic-matrix-v1
+width=180 scheme=light
+color role=primary rgba=202A36FF
+color role=secondary rgba=4E5E70FF
+color role=accent rgba=0067C0FF
+color role=error rgba=B71C1CFF
+color role=warning rgba=915C00FF
+color role=success rgba=1C7A44FF
+color role=info rgba=0067C0FF
+color role=text rgba=202A36FF
+color role=mutedText rgba=4E5E70FF
+color role=background rgba=F7F9FBFF
+color role=panel rgba=EDF1F5FF
+color role=element rgba=DFE5EBFF
+color role=menu rgba=EDF1F5FF
+color role=borderRegular rgba=919DAAFF
+color role=borderActive rgba=0067C0FF
+color role=borderSubtle rgba=C7CFD7FF
+color role=diffAddition rgba=146937FF
+color role=diffDeletion rgba=AA1E2DFF
+color role=diffContext rgba=4E5E70FF
+color role=diffAdditionBackground rgba=DCF4E4FF
+color role=diffDeletionBackground rgba=FFE2E5FF
+color role=markdownHeading rgba=202A36FF
+color role=markdownLink rgba=0067C0FF
+color role=markdownCode rgba=703887FF
+color role=syntaxKeyword rgba=892AA3FF
+color role=syntaxString rgba=1A7040FF
+color role=syntaxNumber rgba=9F4300FF
+color role=syntaxComment rgba=4E5E70FF
+color role=syntaxType rgba=005B87FF
+color role=selectedBackground rgba=0067C0FF
+color role=selectedText rgba=FFFFFFFF
+component idle
+grid width=125 height=3
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=element
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=element
+cells x=0..<1 y=1 text="▌" style=0
+cells x=1..<68 y=1 text="  Fix the semantic renderer without changing package configuration." style=1
+cells x=0..<125 y=2 text="▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄" style=0
+node path=0 id="agent-prompt" role=group label="Ask anything" value=null state=0 actions=[] frame=0,0,125,3
+node path=0.0 id="agent-prompt-editor" role=textEditor label="Ask anything" value=null state=0 actions=[focus,submit] frame=0,0,125,3
+component focused
+grid width=180 height=1
+style 0 width=1 role=inlineCode attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+cells x=0..<6 y=0 text=" file " style=0
+cells x=6..<20 y=0 text="Package.swift " style=1
+cells x=20..<21 y=0 text="×" style=2
+node path=0 id="attachment-chip" role=button label="file attachment: Package.swift" value=null state=8 actions=[dismiss,focus] frame=0,0,180,1
+component hovered
+grid width=180 height=3
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=element
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=element
+cells x=0..<1 y=1 text="▌" style=0
+cells x=1..<24 y=1 text="  Inspect the renderer." style=1
+node path=0 id="user-message" role=group label="Inspect the renderer." value=null state=128 actions=[] frame=0,0,180,3
+component selected
+grid width=180 height=2
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=body attributes=0 link=null continuation=0 background=default
+style 3 width=1 role=body attributes=1 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="  " style=0
+cells x=2..<10 y=0 text="command " style=1
+cells x=10..<15 y=0 text="/test" style=2
+cells x=15..<34 y=0 text="  Run focused tests" style=1
+cells x=0..<2 y=1 text="▌ " style=0
+cells x=2..<7 y=1 text="file " style=1
+cells x=7..<22 y=1 text="Rendering.swift" style=3
+node path=0 id="prompt-autocomplete" role=menu label="Prompt suggestions" value=null state=0 actions=[] frame=0,0,180,2
+node path=0.0 id="prompt-autocomplete-item-0" role=menuItem label="/test" value="Run focused tests" state=0 actions=[activate,focus] frame=null
+node path=0.1 id="prompt-autocomplete-item-1" role=menuItem label="Rendering.swift" value=null state=1 actions=[activate,focus] frame=null
+component disabled-prompt
+grid width=125 height=3
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=element
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=element
+cells x=0..<1 y=1 text="▌" style=0
+cells x=1..<68 y=1 text="  Fix the semantic renderer without changing package configuration." style=1
+cells x=0..<125 y=2 text="▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄" style=0
+node path=0 id="agent-prompt" role=group label="Ask anything" value=null state=4 actions=[] frame=0,0,125,3
+node path=0.0 id="agent-prompt-editor" role=textEditor label="Ask anything" value=null state=4 actions=[] frame=0,0,125,3
+component disabled-menu
+grid width=180 height=2
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=body attributes=0 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="  " style=0
+cells x=2..<10 y=0 text="command " style=1
+cells x=10..<15 y=0 text="/test" style=2
+cells x=15..<34 y=0 text="  Run focused tests" style=1
+cells x=0..<2 y=1 text="  " style=0
+cells x=2..<7 y=1 text="file " style=1
+cells x=7..<22 y=1 text="Rendering.swift" style=2
+node path=0 id="prompt-autocomplete" role=menu label="Prompt suggestions" value=null state=4 actions=[] frame=0,0,180,2
+node path=0.0 id="prompt-autocomplete-item-0" role=menuItem label="/test" value="Run focused tests" state=4 actions=[] frame=null
+node path=0.1 id="prompt-autocomplete-item-1" role=menuItem label="Rendering.swift" value=null state=4 actions=[] frame=null
+component busy-prompt
+grid width=125 height=4
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=element
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=element
+style 2 width=1 role=muted attributes=0 link=null continuation=0 background=element
+cells x=0..<1 y=1 text="▌" style=0
+cells x=1..<68 y=1 text="  Fix the semantic renderer without changing package configuration." style=1
+cells x=0..<125 y=2 text="▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄" style=0
+cells x=0..<10 y=3 text="Working..." style=2
+node path=0 id="agent-prompt" role=group label="Ask anything" value=null state=32 actions=[] frame=0,0,125,4
+node path=0.0 id="agent-prompt-editor" role=textEditor label="Ask anything" value=null state=0 actions=[focus,submit] frame=0,0,125,3
+node path=0.1 id="agent-prompt-status" role=status label="Working..." value=null state=32 actions=[] frame=0,3,125,1
+component busy-shell
+grid width=180 height=3
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=code attributes=1 link=null continuation=0 background=default
+style 2 width=1 role=muted attributes=0 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="$ " style=0
+cells x=2..<12 y=0 text="swift test" style=1
+cells x=0..<9 y=2 text="● Running" style=2
+node path=0 id="shell-result" role=group label="swift test" value=null state=32 actions=[] frame=0,0,180,3
+component error
+grid width=180 height=2
+style 0 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=diagnostic attributes=0 link=null continuation=0 background=default
+cells x=0..<2 y=0 text="! " style=0
+cells x=2..<9 y=0 text="Compile" style=1
+cells x=0..<6 y=1 text="Exit 1" style=2
+node path=0 id="tool-call" role=group label="Compile" value=null state=16 actions=[activate] frame=0,0,180,2
+component reduced-motion-reasoning
+grid width=180 height=1
+style 0 width=1 role=muted attributes=0 link=null continuation=0 background=default
+cells x=0..<12 y=0 text="... Renderer" style=0
+node path=0 id="reasoning" role=button label="Renderer" value=null state=32 actions=[] frame=0,0,180,1
+component reduced-motion-pulse
+grid width=180 height=1
+style 0 width=1 role=muted attributes=0 link=null continuation=0 background=default
+cells x=0..<180 y=0 text="                                                                                         ··                                                                                         " style=0
+node path=0 id="background-pulse" role=progressIndicator label="Background pulse" value=null state=0 actions=[] frame=0,0,180,1
+component focused-dialog
+grid width=180 height=5
+style 0 width=1 role=diagnostic attributes=1 link=null continuation=0 background=default
+style 1 width=1 role=body attributes=0 link=null continuation=0 background=default
+style 2 width=1 role=muted attributes=0 link=null continuation=0 background=default
+style 3 width=1 role=listMarker attributes=0 link=null continuation=0 background=default
+cells x=0..<19 y=0 text="Permission required" style=0
+cells x=0..<22 y=1 text="Delete generated files" style=1
+cells x=0..<8 y=2 text="• .build" style=2
+cells x=0..<2 y=3 text="  " style=3
+cells x=2..<6 y=3 text="Deny" style=1
+cells x=0..<2 y=4 text="▌ " style=3
+cells x=2..<12 y=4 text="Allow once" style=0
+node path=0 id="permission-prompt" role=dialog label="Delete generated files" value=null state=264 actions=[focus] frame=0,0,180,5
+node path=0.0 id="permission-choice-0" role=button label="Deny" value=null state=0 actions=[activate] frame=null
+node path=0.1 id="permission-choice-1" role=button label="Allow once" value=null state=8 actions=[activate] frame=null
