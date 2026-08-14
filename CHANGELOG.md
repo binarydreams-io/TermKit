@@ -2,6 +2,14 @@
 
 All notable changes appear in this file.
 
+## 2.2.4 - 2026-08-15
+
+### Fixed
+
+- `Runtime.run()` now rejects overlapping event loops with `RuntimeError.reentrantRun`, and blocking event waits use structured `@concurrent` offloading.
+- `RuntimeInvalidationChannel` retries wake delivery after an error while preserving coalesced pending invalidations.
+- Releasing a view graph cancels mounted view tasks without a retain cycle.
+
 ## 2.2.3 - 2026-08-14
 
 ### Added

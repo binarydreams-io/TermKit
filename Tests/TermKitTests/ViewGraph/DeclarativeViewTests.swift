@@ -108,16 +108,22 @@ struct DeclarativeViewTests {
     #expect(root.preference(SumPreference.self) == 2)
   }
 
-  @Test
+  @Test(.timeLimit(.minutes(1)))
   func `observation invalidates current mounted node`() async throws {
     let model = Model()
     let graph = ViewGraph()
     try graph.commit(graph.prepare(ObservedView(model: model)))
     let root = try #require(graph.root)
     graph.clearDirtyFlags()
+    let (invalidations, continuation) = AsyncStream.makeStream(of: Void.self)
+    var iterator = invalidations.makeAsyncIterator()
+    graph.invalidationHandler = { _, _ in
+      _ = continuation.yield(())
+    }
+    defer { continuation.finish() }
 
     model.value = 1
-    await Task.yield()
+    _ = await iterator.next()
 
     #expect(root.dirtyFlags == .structure)
   }

@@ -11,12 +11,12 @@ trap 'rm -rf "$TEMP_DIR"' EXIT HUP INT TERM
 mkdir -p "$OUTPUT_DIR"
 
 LIST="$(swift test --package-path "$PROJECT_DIR" --scratch-path "$TEMP_DIR/list" list)"
-COUNT="$(printf '%s\n' "$LIST" | grep -E -c 'IdleSystemTests|RenderPipelinePerformanceTests|SchedulerPerformanceTests|ScalabilityPerformanceTests')"
+COUNT="$(printf '%s\n' "$LIST" | grep -E -c 'The real event source has no periodic idle wake|RenderPipelinePerformanceTests|SchedulerPerformanceTests|ScalabilityPerformanceTests')"
 [[ "$COUNT" -eq 13 ]] || { printf 'Benchmark error: expected 13 tests, found %s\n' "$COUNT" >&2; exit 1; }
 
 LOG="$OUTPUT_DIR/benchmarks.log"
 TERMKIT_RUN_PERFORMANCE_TESTS=1 swift test --package-path "$PROJECT_DIR" --scratch-path "$TEMP_DIR/run" -c release \
-    --filter 'IdleSystemTests|RenderPipelinePerformanceTests|SchedulerPerformanceTests|ScalabilityPerformanceTests' | tee "$LOG"
+    --filter 'The real event source has no periodic idle wake|RenderPipelinePerformanceTests|SchedulerPerformanceTests|ScalabilityPerformanceTests' | tee "$LOG"
 
 swift -warnings-as-errors - "$LOG" "$OUTPUT_DIR/results.json" <<'SWIFT'
 import Foundation

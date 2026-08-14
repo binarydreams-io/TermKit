@@ -8,16 +8,14 @@ import Darwin
 import Glibc
 #endif
 
-@Suite(
-  "Section 15 idle system contract",
-  .serialized,
-  .disabled(
-    if: termKitPerformanceTestsEnabled == false,
-    "Set TERMKIT_RUN_PERFORMANCE_TESTS=1 and use a release build."
+extension TerminalEventSourceTests {
+  @Test(
+    .timeLimit(.minutes(1)),
+    .disabled(
+      if: termKitPerformanceTestsEnabled == false,
+      "Set TERMKIT_RUN_PERFORMANCE_TESTS=1 and use a release build."
+    )
   )
-)
-struct IdleSystemTests {
-  @Test(.timeLimit(.minutes(1)))
   func `The real event source has no periodic idle wake`() throws {
     var inputDescriptors: [Int32] = [-1, -1]
     var resultDescriptors: [Int32] = [-1, -1]

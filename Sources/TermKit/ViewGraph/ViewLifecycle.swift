@@ -32,6 +32,7 @@ private final class MountedViewTask {
 
   func start() {
     guard task == nil else { return }
+    let action = action
     task = Task { await action() }
   }
 

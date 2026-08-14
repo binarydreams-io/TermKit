@@ -128,27 +128,38 @@ struct TerminalPTYIntegrationTests {
   func `PTY async session restores modes after cancellation`() async throws {
     let pty = try PTYPair()
     let originalAttributes = try pty.attributesSnapshot()
+    var task: Task<Void, any Error>?
 
-    let start = try pty.captureOutput(exactByteCount: activation.count) {
-      Task {
-        let session = makeSession(pty: pty)
-        try await session.withActiveSession { _ in
-          try await Task.sleep(for: .seconds(60))
+    do {
+      let start = try pty.captureOutput(exactByteCount: activation.count) {
+        let createdTask = Task {
+          let session = makeSession(pty: pty)
+          try await session.withActiveSession { _ in
+            try await Task.sleep(for: .seconds(60))
+          }
         }
+        task = createdTask
+        return createdTask
       }
-    }
-    let task = try start.result.get()
-    #expect(start.output == activation)
+      let runningTask = try start.result.get()
+      #expect(start.output == activation)
 
-    let cancellation = try pty.captureOutput(exactByteCount: deactivation.count) {
-      task.cancel()
+      let cancellation = try pty.captureOutput(exactByteCount: deactivation.count) {
+        runningTask.cancel()
+      }
+      _ = try cancellation.result.get()
+      #expect(cancellation.output == deactivation)
+      await #expect(throws: CancellationError.self) {
+        try await runningTask.value
+      }
+      #expect(try pty.attributesSnapshot() == originalAttributes)
+    } catch {
+      task?.cancel()
+      if let task {
+        _ = await task.result
+      }
+      throw error
     }
-    _ = try cancellation.result.get()
-    #expect(cancellation.output == deactivation)
-    await #expect(throws: CancellationError.self) {
-      try await task.value
-    }
-    #expect(try pty.attributesSnapshot() == originalAttributes)
   }
 
   private func makeSession(pty: PTYPair, terminalTitle: Bool = false) -> TerminalSession {

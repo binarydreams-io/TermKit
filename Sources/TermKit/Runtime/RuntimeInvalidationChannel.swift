@@ -16,15 +16,11 @@ public final class RuntimeInvalidationChannel: Sendable {
   /// - Parameter invalidation: The region to invalidate, or the entire frame by default.
   /// - Complexity: O(1).
   public func send(_ invalidation: RuntimeInvalidation = .all) throws {
-    let needsWake = pending.withLock { pending in
-      let needsWake = pending == nil
+    pending.withLock { pending in
       pending = Self.coalesce(pending, invalidation)
-      return needsWake
     }
 
-    if needsWake {
-      try wakeHandler?()
-    }
+    try wakeHandler?()
   }
 
   func take() -> RuntimeInvalidation? {

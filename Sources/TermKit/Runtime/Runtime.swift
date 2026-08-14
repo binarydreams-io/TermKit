@@ -14,6 +14,14 @@ public protocol RuntimeEventSource: Sendable {
 
 extension TerminalEventSource: RuntimeEventSource {}
 
+@concurrent
+private func nextRuntimeEvent(
+  from eventSource: any RuntimeEventSource,
+  timeout: TimeSpan?
+) async throws -> TerminalRuntimeEvent? {
+  try eventSource.nextEvent(timeout: timeout)
+}
+
 /// Defines process operations required by the runtime.
 public protocol RuntimeProcessControl: Sendable {
   /// Suspends the current process.
@@ -93,6 +101,8 @@ public enum RuntimeError: Error, Sendable, Equatable {
   case invalidState(RuntimeState)
   /// The runtime cannot run without an event source.
   case eventSourceUnavailable
+  /// The runtime event loop is already running.
+  case reentrantRun
   /// A frame render started while another frame render was active.
   case reentrantFrame
   /// A rendered surface does not match the terminal size.
@@ -208,6 +218,7 @@ public final class Runtime {
   private var isRendering = false
   private var isUpdatingFrameEnvironment = false
   private var isWaitingForEvent = false
+  private var isRunningEventLoop = false
   private var textSelection = SurfaceTextSelection()
   private let missedBudgetCounter = DiagnosticsCounter()
 
@@ -577,6 +588,10 @@ public final class Runtime {
 
   /// Runs the event loop until the runtime stops or an error occurs.
   public func run() async throws {
+    guard isRunningEventLoop == false else { throw RuntimeError.reentrantRun }
+    isRunningEventLoop = true
+    defer { isRunningEventLoop = false }
+
     guard let eventSource else { throw RuntimeError.eventSourceUnavailable }
     if state == .inactive {
       try start()
@@ -1088,9 +1103,7 @@ public final class Runtime {
     isWaitingForEvent = true
     defer { isWaitingForEvent = false }
     let event = try await withTaskCancellationHandler {
-      try await Task.detached {
-        try eventSource.nextEvent(timeout: timeout)
-      }.value
+      try await nextRuntimeEvent(from: eventSource, timeout: timeout)
     } onCancel: {
       try? eventSource.wake()
     }

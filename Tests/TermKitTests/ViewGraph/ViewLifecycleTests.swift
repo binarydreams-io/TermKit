@@ -110,6 +110,34 @@ struct ViewLifecycleTests {
     #expect(probe.taskStartCount == 2)
     try replacement.stop()
   }
+
+  @Test(.timeLimit(.minutes(1)))
+  func `Dropping a graph cancels its mounted task and releases the task owner`() async throws {
+    let (deallocations, deallocationContinuation) = AsyncStream.makeStream(of: Void.self)
+    var deallocationIterator = deallocations.makeAsyncIterator()
+    var graph: ViewGraph? = ViewGraph()
+    weak var weakProbe: ViewLifecycleProbe?
+
+    do {
+      let probe = ViewLifecycleProbe {
+        _ = deallocationContinuation.yield(())
+        deallocationContinuation.finish()
+      }
+      weakProbe = probe
+      let mountedGraph = try #require(graph)
+      try mountedGraph.commit(
+        mountedGraph.prepare(LifecycleLeaf().task { await probe.runTask() })
+      )
+      await probe.waitUntilTaskStarts()
+    }
+
+    #expect(weakProbe != nil)
+    graph = nil
+    await weakProbe?.waitUntilTaskCancels()
+    _ = await deallocationIterator.next()
+
+    #expect(weakProbe == nil)
+  }
 }
 
 @MainActor
@@ -125,9 +153,18 @@ private final class ViewLifecycleProbe {
   var taskStartCount = 0
   var taskCancellationCount = 0
 
+  private let deinitHandler: (@MainActor @Sendable () -> Void)?
   private var taskStartContinuation: CheckedContinuation<Void, Never>?
   private var taskStartTarget = 1
   private var taskCancellationContinuation: CheckedContinuation<Void, Never>?
+
+  init(deinitHandler: (@MainActor @Sendable () -> Void)? = nil) {
+    self.deinitHandler = deinitHandler
+  }
+
+  isolated deinit {
+    deinitHandler?()
+  }
 
   func runTask() async {
     taskStartCount += 1

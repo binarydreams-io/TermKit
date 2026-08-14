@@ -657,6 +657,21 @@ struct RuntimeTests {
   }
 
   @Test
+  func `Invalidation channel retries a failed wake and preserves pending regions`() throws {
+    let wakeHandler = FailingInvalidationWakeHandler()
+    let channel = RuntimeInvalidationChannel { try wakeHandler.wake() }
+
+    #expect(throws: RuntimeInvalidationWakeTestError.expected) {
+      try channel.send(.region(CellRect(x: 1, y: 0, width: 1, height: 1)))
+    }
+    try channel.send(.region(CellRect(x: 3, y: 0, width: 1, height: 1)))
+
+    #expect(wakeHandler.callCount == 2)
+    #expect(channel.take() == .region(CellRect(x: 1, y: 0, width: 3, height: 1)))
+    #expect(channel.take() == nil)
+  }
+
+  @Test
   func `Animation timeline uses runtime instants and stays at or below sixty FPS`() throws {
     let presenter = FramePresenter(session: FakeTerminalSession())
     let runtime = Runtime(
@@ -961,15 +976,58 @@ struct RuntimeTests {
     )
     let runTask = Task { try await runtime.run() }
 
-    try await eventSource.waitForWaitCount(1)
-    runTask.cancel()
+    do {
+      try await eventSource.waitForWaitCount(1)
+      runTask.cancel()
 
-    await #expect(throws: CancellationError.self) {
-      try await runTask.value
+      await #expect(throws: CancellationError.self) {
+        try await runTask.value
+      }
+      #expect(runtime.state == .stopped)
+      #expect(session.state == .inactive)
+      #expect(session.stopCount == 1)
+    } catch {
+      runTask.cancel()
+      _ = await runTask.result
+      throw error
     }
-    #expect(runtime.state == .stopped)
-    #expect(session.state == .inactive)
-    #expect(session.stopCount == 1)
+  }
+
+  @Test(.timeLimit(.minutes(1)))
+  func `A concurrent run is rejected while the first run remains active`() async throws {
+    let session = FakeTerminalSession()
+    let eventSource = FakeRuntimeEventSource()
+    let runtime = Runtime(
+      view: TestRuntimeView(text: "a"),
+      presenter: FramePresenter(session: session),
+      terminalSize: CellSize(width: 1, height: 1),
+      eventSource: eventSource
+    )
+    let runTask = Task { try await runtime.run() }
+
+    do {
+      try await eventSource.waitForWaitCount(1)
+
+      await #expect(throws: RuntimeError.reentrantRun) {
+        try await runtime.run()
+      }
+      #expect(runtime.state == .running)
+
+      try eventSource.wake()
+      try await eventSource.waitForWaitCount(2)
+      #expect(runtime.state == .running)
+
+      runTask.cancel()
+      await #expect(throws: CancellationError.self) {
+        try await runTask.value
+      }
+      #expect(runtime.state == .stopped)
+      #expect(session.state == .inactive)
+    } catch {
+      runTask.cancel()
+      _ = await runTask.result
+      throw error
+    }
   }
 
   @Test
@@ -1077,22 +1135,28 @@ struct RuntimeTests {
     )
     let runTask = Task { try await runtime.run() }
 
-    try await eventSource.waitForWaitCount(1)
-    #expect(eventSource.timeouts == [nil])
-    view.text = "b"
-    runtime.invalidate()
-    try await eventSource.waitForWaitCount(2)
-    timeSource.advance(by: FrameScheduler.minimumFrameInterval)
-    try eventSource.wake()
-    try await eventSource.waitForWaitCount(3)
-    #expect(view.paintCount == 2)
-    #expect(eventSource.timeouts.count == 3)
-    #expect(eventSource.timeouts[0] == nil)
-    #expect(eventSource.timeouts[1] != nil)
-    #expect(eventSource.timeouts[2] == nil)
+    do {
+      try await eventSource.waitForWaitCount(1)
+      #expect(eventSource.timeouts == [nil])
+      view.text = "b"
+      runtime.invalidate()
+      try await eventSource.waitForWaitCount(2)
+      timeSource.advance(by: FrameScheduler.minimumFrameInterval)
+      try eventSource.wake()
+      try await eventSource.waitForWaitCount(3)
+      #expect(view.paintCount == 2)
+      #expect(eventSource.timeouts.count == 3)
+      #expect(eventSource.timeouts[0] == nil)
+      #expect(eventSource.timeouts[1] != nil)
+      #expect(eventSource.timeouts[2] == nil)
 
-    try runtime.stop()
-    try await runTask.value
+      try runtime.stop()
+      try await runTask.value
+    } catch {
+      runTask.cancel()
+      _ = await runTask.result
+      throw error
+    }
   }
 
   @Test
@@ -1574,6 +1638,29 @@ private struct AnimatedStateRoot: View {
 
 private enum RuntimeViewTestError: Error {
   case expected
+}
+
+private enum RuntimeInvalidationWakeTestError: Error {
+  case expected
+}
+
+/// NSLock protects the call counter used by the sendable wake handler.
+private final class FailingInvalidationWakeHandler: @unchecked Sendable {
+  private let lock = NSLock()
+  private var recordedCallCount = 0
+
+  var callCount: Int {
+    lock.withLock { recordedCallCount }
+  }
+
+  func wake() throws {
+    try lock.withLock {
+      recordedCallCount += 1
+      if recordedCallCount == 1 {
+        throw RuntimeInvalidationWakeTestError.expected
+      }
+    }
+  }
 }
 
 @MainActor

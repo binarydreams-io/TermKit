@@ -25,7 +25,7 @@ struct InputInvalidationRuntimeTests {
     #expect(session.presentedPayloads.count == payloadCount)
   }
 
-  @Test
+  @Test(.timeLimit(.minutes(1)))
   func `State-driven input renders the observed mutation`() async throws {
     let model = InputCounterModel()
     let session = FakeTerminalSession()
@@ -41,9 +41,15 @@ struct InputInvalidationRuntimeTests {
     try runtime.start()
     _ = try runtime.renderIfDue(at: .zero)
     #expect(surfaceLine(presenter) == "v0")
+    let (invalidations, continuation) = AsyncStream.makeStream(of: Void.self)
+    var iterator = invalidations.makeAsyncIterator()
+    runtime.graph.invalidationHandler = { _, _ in
+      _ = continuation.yield(())
+    }
+    defer { continuation.finish() }
 
     try runtime.process(.input(.key(TerminalKeyEvent(key: .enter))))
-    await Task.yield()
+    _ = await iterator.next()
     _ = try runtime.renderIfDue(at: .zero.advanced(by: FrameScheduler.minimumFrameInterval))
 
     #expect(surfaceLine(presenter) == "v1")
