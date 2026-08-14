@@ -3,7 +3,11 @@
 [![CI](https://github.com/binarydreams-io/termkit/actions/workflows/ci.yml/badge.svg)](https://github.com/binarydreams-io/termkit/actions/workflows/ci.yml)
 [![Release](https://img.shields.io/github/v/release/binarydreams-io/termkit)](https://github.com/binarydreams-io/termkit/releases)
 
-TermKit is a declarative Swift terminal UI library from [Binary Dreams, LLC](https://binarydreams.io).
+<a href="https://binarydreams.io" target="_blank" rel="noopener noreferrer">
+  <img src="Icon.svg" alt="TermKit icon" width="120" align="right">
+</a>
+
+TermKit is a declarative Swift terminal UI library from <a href="https://binarydreams.io" target="_blank" rel="noopener noreferrer">Binary Dreams, LLC</a>.
 It uses a retained view graph, packed terminal cells, damage-limited output, and one shared frame scheduler.
 
 Version `2.2.3` supports Swift 6.3.3, macOS 14 or later, and glibc-based Linux systems.
