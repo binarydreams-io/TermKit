@@ -1,0 +1,15 @@
+termkit-player-semantic-snapshot-v1
+size 40x16
+row 0: TERMKIT PLAYER
+row 1: Blue Hour Relay
+row 2: PAUSED  0:00 / 3:37
+row 3: Terminal too small for deck view
+row 4: Space play/pause · q quit
+row 5: visual simulation · no audio output
+node player-header role=group label=TERMKIT PLAYER value=nil frame=0,0,14,1 actions=
+node player-header-content role=text label=TERMKIT PLAYER value=nil frame=0,0,14,1 actions=
+node minimum-track role=text label=Blue Hour Relay value=nil frame=0,1,15,1 actions=
+node minimum-state role=text label=PAUSED  0:00 / 3:37 value=nil frame=0,2,19,1 actions=
+node minimum-message role=text label=Terminal too small for deck view value=nil frame=0,3,32,1 actions=
+node minimum-shortcuts role=text label=Space play/pause · q quit value=nil frame=0,4,25,1 actions=
+node minimum-silent role=text label=visual simulation · no audio output value=nil frame=0,5,35,1 actions=

@@ -1,13 +1,13 @@
-# Known Limitations
+# Limitations
 
-- SwiftTUI is a preview and does not provide stable 1.0 API guarantees.
+- TermKit 0.1.0 is a pre-1.0 API and can contain source-breaking changes.
 - TUIkit 1.x source and binary compatibility are not supported.
 - Windows and ConPTY are not supported.
-- Terminal layout is left to right. SwiftTUI preserves RTL grapheme clusters but does not implement bidirectional paragraph layout.
-- Movement resolves to terminal cells. Rotation, pixel geometry, and `scaleEffect` are not available.
-- Matched geometry, keyframe animation, and phase animation are not part of the first release.
-- The built-in syntax highlighter is intentionally subtle. Tree-sitter integration is not included.
-- Synchronized output is enabled only after protocol proof. Other terminals use the ANSI fallback.
-- Automated compatibility runs cover macOS and glibc Linux. Manual terminal smoke records are still required for each release candidate.
-- The accepted performance baseline measures the in-process runtime pipeline. It does not measure terminal compositor latency or prove the absence of visual tearing.
-- Legacy TUIkit targets remain in the repository for regression tests. They are not public SwiftTUI products.
+- Layout is left to right. TermKit preserves RTL graphemes but does not implement bidirectional paragraph layout.
+- Network image loading and animated PNG are not supported.
+- TermKitPlayer simulates playback and does not produce audio.
+- The upstream image decoders are not described as hardened.
+- The clean codec releases omit strict checks for reserved PNG filters, JPEG DNL height, and JPEG entropy padding.
+- Tree-sitter parsing is not included. Syntax highlighting uses the built-in lightweight highlighter.
+- Optional synchronized-output probing can fall back to ordinary buffered ANSI presentation.
+- Hosted-runner timing is diagnostic evidence, not the only performance gate.

@@ -1,3 +1,0 @@
-FixtureTests/firstRealTest()
-FixtureTests/secondRealTest()
-  FixtureTests/firstRealTest()

@@ -1,53 +1,33 @@
-# Migrating From TUIkit 1.x
+# Migration To TermKit 0.1.0
 
-SwiftTUI does not preserve TUIkit 1.x source or binary compatibility. Treat the migration as an application rewrite at the view boundary.
+TermKit 0.1.0 publishes one product and one module. Replace old package products and imports with `TermKit`.
 
-## Release 0.1.0-preview
+## Package Changes
 
-This section applies to version `0.1.0-preview`.
+Use `.product(name: "TermKit", package: "termkit")` and `import TermKit`.
+Removed module imports fail by design. TermKit does not provide compatibility aliases.
 
-## Package Product
+## API Renames
 
-Replace the `TUIkit` product with `SwiftTUI`:
+| Old API | TermKit 0.1.0 |
+| --- | --- |
+| `TUIRuntime` | `Runtime` |
+| `TUIRuntimeError` | `RuntimeError` |
+| `TUIRuntimeDiagnostic` | `RuntimeDiagnostic` |
+| `TUIDuration` | `TimeSpan` |
+| Design `Surface` | `SurfaceView` |
+| Separate toast enums | `ToastKind` |
+| `SWIFTTUI_*` variables | `TERMKIT_*` variables |
 
-```swift
-.product(name: "SwiftTUI", package: "SwiftTUI")
-```
+The renderer type remains `Surface`.
 
-Replace `import TUIkit` with `import SwiftTUI`.
+The migration removes the internal showcase catalog types `ShowcaseCatalog`, `ShowcaseComponent`,
+and `ShowcaseEntry`. Use the standalone `Examples/TermKitPlayer` package for example content.
 
-## Application Lifecycle
+## Architecture Changes
 
-TUIkit 1.x applications use `App`, `Scene`, and `WindowGroup`. SwiftTUI applications create a `TerminalSession`, `FramePresenter`, terminal event source, and `TUIRuntime`. Pass the root `View` to `TUIRuntime`.
+TermKit uses one module with subsystem directories. Applications should not depend on former module boundaries.
+The runtime owns the terminal lifecycle, retained graph, frame scheduler, and cleanup.
 
-Use `TUIRuntime.run()` from an async `@main` entry point. The runtime owns terminal cleanup for normal exit, errors, cancellation, and signals.
-
-Implement `RuntimeView` only for a low-level custom layout and paint pipeline. Most applications use `TUIRuntime(view: View, ...)`.
-
-## Rendering
-
-Do not return ANSI strings or legacy frame buffers. Paint into `TUIRenderer.Surface` with interned grapheme and style identifiers.
-
-Report local damage with `DamageTracker`. The presenter compares the completed surface with the previous surface and writes changed cells.
-
-## State And Views
-
-Use the `TUIViewGraph` `View`, `ViewBuilder`, `State`, `Environment`, and preference APIs. Structural identity and explicit keys determine state retention.
-
-Do not depend on TUIkit 1.x render-cache identity. SwiftTUI commits lifecycle effects only after a successful frame.
-
-## Layout
-
-Replace legacy string-width layout with `TUILayout` proposals, measurement, and placement. Use `LazyLayoutPlanner` or `ConversationViewport` for large transcripts.
-
-## Animation
-
-Replace private component timers with `Transaction`, `withAnimation`, animation tracks, or `TimelineView`. The runtime scheduler caps active animation demand at 60 FPS and has no idle timer.
-
-## Controls And Agent UI
-
-Use `TUIControls` for general controls. Use `TUIAgentUI` only for generic coding-agent presentation models. Application networking, persistence, and tool execution remain outside the framework.
-
-## Preview Changes
-
-Version 0.x releases can change public APIs. Record each future breaking change in this file before publishing the release.
+TUIkit 1.x view code requires a new declarative boundary based on `View`, `NodeDescriptor`, and `graphBody`.
+Networking, persistence, tool execution, and application data remain application responsibilities.

@@ -1,39 +1,43 @@
-# SwiftTUI Provenance
+# Provenance
 
-SwiftTUI is a new terminal UI framework derived from TUIkit and informed by OpenCode interaction patterns.
+## TUIkit
 
-## TUIkit Source
-
-- Repository: `https://github.com/phranck/TUIkit.git`
+- Repository: `https://github.com/phranck/TUIkit`
 - Fork base: `9f9aaed5ba332adaa678f07744395b9de812bbf0`
-- Imported version: `0.6.0+rigyard.1.upstream.9f9aaed`
+- Role: inherited fork source
 - License: MIT
 
-The repository retains the imported TUIkit sources as internal regression targets. The Swift package does not publish the legacy TUIkit products.
+TermKit preserves the upstream notice without claiming ownership of inherited code.
+Legacy source trees and compatibility targets were removed after the modern behavior baseline was recorded.
 
-## OpenCode Source
+## OpenTUI
 
-- Repository: `https://github.com/anomalyco/opencode`
-- Reference branch when the design was approved: `dev`
+- Repository: `https://github.com/anomalyco/opentui`
+- Role: directly studied design reference for component styles and interaction ideas
+- Included source: none identified
+- Studied revision: not recorded
+- License verification revision: `1500698af07951ea0c1c67c9ad737fc54382ee20`
 - License: MIT
 
-SwiftTUI does not copy OpenCode branding, logos, product text, network clients, session stores, or tool execution. `TUIAgentUI` adapts general interaction concepts to independent Swift models and semantic cell renderers.
+## Image Dependencies
 
-## SwiftTUI Delta
+| Package | Version | Commit | Role | License |
+| --- | --- | --- | --- | --- |
+| swift-png | 4.5.1 | `8a0bcd4df5e4b307c804937776a56dd6ecdf6396` | Direct PNG decoder | Apache-2.0 |
+| swift-jpeg | 2.1.0 | `c7aa48486cd8920120dd69cda5de62aeb93e1708` | Direct JPEG decoder | Apache-2.0 |
+| h | 1.0.1 | `aa3626829160917d4378330617971977cbd78f5b` | Transitive codec support | Apache-2.0 |
 
-The SwiftTUI implementation adds:
+The wrapper validates signatures, dimensions, allocation arithmetic, PNG metadata, JPEG frames, and bounded file reads.
+It uses deterministic pixel-to-cell sizing and explicit decoding limits.
 
-- packed terminal-cell surfaces and stable interners;
-- front/back cell diff and ANSI state tracking;
-- retained graph reconciliation with staged lifecycle commits;
-- proposal-based layout and lazy viewport planning;
-- transaction-based animation and one frame scheduler;
-- semantic themes, rich text, and coding-agent components;
-- an async POSIX runtime with self-pipe signal delivery;
-- deterministic, PTY, property, snapshot, and performance tests.
+## Excluded Build Tool
 
-See `docs/design-origin.md` for the source classification of each subsystem.
+`dollup` is declared by upstream manifests but is absent from the resolved TermKit graph.
+TermKit does not download, build, execute, link, or distribute it at the audited revision.
+Its license terms were not found. A future graph change must resolve those terms before release.
 
-## Verification State
+## Original Player Assets
 
-The current workspace has no Git `HEAD`. Benchmark records therefore use `uncommitted` as the revision. Replace this value with a commit identifier when the project receives its first commit.
+TermKitPlayer artwork and capture metadata appear in `Examples/Assets/README.md` and `.github/assets/README.md`.
+
+Historical planning records remain in `Documentation/Plans/`. They preserve old names only as migration evidence.

@@ -1,0 +1,33 @@
+name: Feature request
+description: Propose a focused addition or behavior change.
+title: "[Feature]: "
+labels: [enhancement]
+body:
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem
+      description: Describe the user problem that the feature must solve.
+    validations:
+      required: true
+  - type: textarea
+    id: proposal
+    attributes:
+      label: Proposed behavior
+      description: Describe the public behavior and include a short usage example.
+    validations:
+      required: true
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives
+      description: Describe approaches that you considered and why they do not solve the problem.
+  - type: checkboxes
+    id: scope
+    attributes:
+      label: Scope check
+      options:
+        - label: The proposal supports macOS and glibc Linux.
+          required: true
+        - label: The proposal does not require a compatibility layer for removed modules.
+          required: true

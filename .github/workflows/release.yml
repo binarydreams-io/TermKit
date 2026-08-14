@@ -1,0 +1,66 @@
+name: Release
+
+on:
+  push:
+    tags:
+      - "[0-9]*.[0-9]*.[0-9]*"
+
+permissions:
+  contents: read
+
+jobs:
+  release:
+    name: Release
+    runs-on: macos-26
+    permissions:
+      contents: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@34e114876b0b11c390a56381ad16ebd13914f8d5 # v4.3.1
+        with:
+          fetch-depth: 0
+      - name: Verify Swift toolchain
+        run: |
+          source scripts/toolchain.env
+          [[ "$(swift --version | sed -n '1s/.*version \([0-9][0-9.]*\).*/\1/p')" == "$SWIFT_VERSION" ]]
+      - name: Validate the SemVer tag
+        run: |
+          [[ "$GITHUB_REF_NAME" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+          [[ "$(git tag --points-at HEAD)" == *"$GITHUB_REF_NAME"* ]]
+      - name: Build and verify source archive
+        env:
+          TERMKIT_RELEASE_OUTPUT: ${{ runner.temp }}/release
+        run: ./scripts/verify-release.sh "$GITHUB_REF_NAME"
+      - name: Build documentation
+        run: |
+          ./scripts/generate-documentation.sh "$RUNNER_TEMP/documentation"
+          tar -czf "$RUNNER_TEMP/release/TermKit-$GITHUB_REF_NAME.docc.tar.gz" -C "$RUNNER_TEMP/documentation" .
+      - name: Run pre-release benchmarks
+        run: |
+          ./scripts/run-benchmarks.sh "$RUNNER_TEMP/benchmarks"
+          tar -czf "$RUNNER_TEMP/release/TermKit-$GITHUB_REF_NAME-benchmarks.tar.gz" -C "$RUNNER_TEMP/benchmarks" .
+      - name: Generate artifact checksums
+        run: >-
+          cd "$RUNNER_TEMP/release" &&
+          shasum -a 256
+          "TermKit-$GITHUB_REF_NAME.tar.gz"
+          "TermKit-$GITHUB_REF_NAME.docc.tar.gz"
+          "TermKit-$GITHUB_REF_NAME-benchmarks.tar.gz"
+          > SHA256SUMS
+      - name: Upload release artifacts
+        uses: actions/upload-artifact@ea165f8d65b6e75b540449e92b4886f43607fa02 # v4.6.2
+        with:
+          name: TermKit-${{ github.ref_name }}
+          path: ${{ runner.temp }}/release
+          if-no-files-found: error
+      - name: Prepare a draft GitHub Release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: >-
+          gh release create "$GITHUB_REF_NAME"
+          "$RUNNER_TEMP/release/TermKit-$GITHUB_REF_NAME.tar.gz"
+          "$RUNNER_TEMP/release/TermKit-$GITHUB_REF_NAME.tar.gz.sha256"
+          "$RUNNER_TEMP/release/TermKit-$GITHUB_REF_NAME.docc.tar.gz"
+          "$RUNNER_TEMP/release/TermKit-$GITHUB_REF_NAME-benchmarks.tar.gz"
+          "$RUNNER_TEMP/release/SHA256SUMS"
+          --draft --generate-notes --verify-tag --title "TermKit $GITHUB_REF_NAME"

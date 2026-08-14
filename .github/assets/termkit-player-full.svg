@@ -1,0 +1,27 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1440" height="720" viewBox="0 0 1440 720">
+  <rect width="1440" height="720" rx="18" fill="#12171d"/>
+  <rect x="28" y="28" width="1384" height="664" rx="10" fill="#0b1117" stroke="#3c3e40" stroke-width="3"/>
+  <g font-family="Menlo, monospace" font-size="20" fill="#dfe7ec">
+    <text x="52" y="68" fill="#ffb848" font-weight="bold">FULL DECK // TK-97</text>
+    <rect x="52" y="94" width="288" height="260" rx="6" fill="#0f273d"/>
+    <circle cx="255" cy="160" r="52" fill="#ffb848"/>
+    <path d="M52 278 L120 194 L177 252 L240 170 L340 300 V354 H52 Z" fill="#194d69"/>
+    <path d="M52 318 C116 278 165 356 218 312 S294 270 340 330 V354 H52 Z" fill="#4adae6" opacity=".75"/>
+    <rect x="368" y="94" width="1018" height="260" rx="6" fill="#0f273d"/>
+    <text x="392" y="132" fill="#ffb848" font-weight="bold">Blue Hour Relay</text>
+    <text x="392" y="162" fill="#ffb848">North Circuit · Signals After Rain</text>
+    <text x="392" y="205" fill="#4adae6">PAUSED  0:00 / 3:37</text>
+    <text x="392" y="242" fill="#8197a4">────────────────────────────────────────────────</text>
+    <text x="392" y="280" font-weight="bold">[|&lt;]  [▶]  [&gt;|]   VOL 65%</text>
+    <text x="720" y="280" fill="#4adae6">━━━━━━</text><text x="792" y="280" fill="#8197a4">────</text>
+    <text x="922" y="280" fill="#8197a4">SHUF OFF · REP OFF</text>
+    <text x="392" y="326" fill="#4adae6">▁</text><text x="404" y="326" fill="#f44b4d" font-weight="bold">▇▇</text><text x="428" y="326" fill="#4adae6">▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅</text>
+    <text x="52" y="398" fill="#ffb848" font-weight="bold">QUEUE</text>
+    <rect x="52" y="420" width="1334" height="46" fill="#0f273d"/>
+    <text x="66" y="450" fill="#4adae6" font-weight="bold">▶ Blue Hour Relay</text><text x="1308" y="450">3:37</text>
+    <text x="66" y="500">  Glass Harbor</text><text x="1308" y="500">4:44</text>
+    <text x="66" y="550">  Static Bloom</text><text x="1308" y="550">3:11</text>
+    <text x="66" y="600">  Last Carrier</text><text x="1308" y="600">4:06</text>
+    <text x="52" y="658" fill="#8197a4" font-size="16">Visual simulation, no audio output · Space play · n/p track · ←/→ seek · +/- volume · m mute · s shuffle · r repeat · q quit</text>
+  </g>
+</svg>

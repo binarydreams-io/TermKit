@@ -1,0 +1,18 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="840" height="480" viewBox="0 0 840 480">
+  <rect width="840" height="480" rx="16" fill="#12171d"/>
+  <rect x="24" y="24" width="792" height="432" rx="8" fill="#0b1117" stroke="#3c3e40" stroke-width="3"/>
+  <g font-family="Menlo, monospace" font-size="18" fill="#dfe7ec">
+    <text x="46" y="62" fill="#ffb848" font-weight="bold">COMPACT DECK // TK-97</text>
+    <rect x="46" y="84" width="748" height="136" rx="5" fill="#0f273d"/>
+    <text x="66" y="118" fill="#ffb848" font-weight="bold">Blue Hour Relay</text>
+    <text x="66" y="148" fill="#ffb848">North Circuit</text>
+    <text x="66" y="182" fill="#4adae6">PAUSED  0:00 / 3:37</text>
+    <text x="66" y="208" font-weight="bold">[|&lt;] [▶] [&gt;|]  VOL 65%  SHUF OFF · REP OFF</text>
+    <text x="46" y="258" fill="#ffb848" font-weight="bold">QUEUE</text>
+    <rect x="46" y="276" width="748" height="38" fill="#0f273d"/>
+    <text x="58" y="301" fill="#4adae6">▶ Blue Hour Relay</text><text x="732" y="301">3:37</text>
+    <text x="58" y="344">  Glass Harbor</text><text x="732" y="344">4:44</text>
+    <text x="58" y="387">  Static Bloom</text><text x="732" y="387">3:11</text>
+    <text x="46" y="430" fill="#8197a4" font-size="13">Visual simulation, no audio output · Space play · n/p track · q quit</text>
+  </g>
+</svg>
