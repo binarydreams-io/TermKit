@@ -26,7 +26,7 @@ jobs:
           source scripts/toolchain.env
           [[ "$(swift --version | sed -n '1s/.*version \([0-9][0-9.]*\).*/\1/p')" == "$SWIFT_VERSION" ]]
       - name: Configure Pages
-        uses: actions/configure-pages@983d7736d9b0ae728b81ab479565c72886d7745b # v5
+        uses: actions/configure-pages@45bfe0192ca1faeb007ade9deae92b16b8254a0d # v6.0.0
       - name: Build warning-free DocC output
         run: ./scripts/generate-documentation.sh "$RUNNER_TEMP/documentation"
       - name: Upload Pages artifact
