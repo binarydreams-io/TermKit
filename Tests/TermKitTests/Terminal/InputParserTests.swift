@@ -104,6 +104,93 @@ struct InputParserTests {
   }
 
   @Test
+  func `Kitty keyboard parses shifted and base-layout keys`() {
+    var parser = TerminalInputParser(
+      configuration: TerminalInputParserConfiguration(enablesKittyKeyboard: true)
+    )
+
+    let output = parser.append(Array("\u{1B}[1089:1057:99;6:2u".utf8))
+    let event = TerminalKeyEvent(
+      key: .text("с"),
+      modifiers: [.shift, .control],
+      action: .repeat,
+      shiftedKey: "С",
+      baseLayoutKey: "c"
+    )
+
+    #expect(output.events == [.key(event)])
+    #expect(event.normalizedText == "c")
+  }
+
+  @Test
+  func `Kitty keyboard accepts a base-layout key without a shifted key`() {
+    var parser = TerminalInputParser(
+      configuration: TerminalInputParserConfiguration(enablesKittyKeyboard: true)
+    )
+
+    let output = parser.append(Array("\u{1B}[1089::99;5u".utf8))
+
+    #expect(
+      output.events == [
+        .key(
+          TerminalKeyEvent(
+            key: .text("с"),
+            modifiers: .control,
+            shiftedKey: nil,
+            baseLayoutKey: "c"
+          )
+        )
+      ]
+    )
+  }
+
+  @Test
+  func `Kitty keyboard rejects malformed alternate keys`() {
+    var parser = TerminalInputParser(
+      configuration: TerminalInputParserConfiguration(enablesKittyKeyboard: true)
+    )
+    let sequence = Array("\u{1B}[1089:55296:99;5u".utf8)
+
+    #expect(parser.append(sequence).errors == [.invalidKittyKeyboardSequence(sequence)])
+  }
+
+  @Test
+  func `Kitty keyboard rejects invalid event metadata`() {
+    var parser = TerminalInputParser(
+      configuration: TerminalInputParserConfiguration(enablesKittyKeyboard: true)
+    )
+
+    let output = parser.append(Array("\u{1B}[97;1:4u".utf8))
+
+    #expect(output.events.isEmpty)
+    #expect(output.errors == [.invalidKittyKeyboardSequence(Array("\u{1B}[97;1:4u".utf8))])
+  }
+
+  @Test
+  func `Normalized text falls back across the full JCUKEN layout`() {
+    let lowercase = TerminalKeyEvent(key: .text("ёйцукенгшщзхъфывапролджэячсмитьбю"))
+    let uppercase = TerminalKeyEvent(key: .text("ЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"))
+
+    #expect(lowercase.normalizedText == "`qwertyuiop[]asdfghjkl;'zxcvbnm,.")
+    #expect(uppercase.normalizedText == "~QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>")
+    #expect(TerminalKeyEvent(key: .text("plain text")).normalizedText == "plain text")
+    #expect(TerminalKeyEvent(key: .enter).normalizedText == nil)
+  }
+
+  @Test
+  func `Kitty alternate reporting preserves plain UTF-8 input`() {
+    var parser = TerminalInputParser(
+      configuration: TerminalInputParserConfiguration(enablesKittyKeyboard: true)
+    )
+
+    #expect(
+      parser.append(Array("текст".utf8)).events == Array("текст").map {
+        .key(TerminalKeyEvent(key: .text(String($0))))
+      }
+    )
+  }
+
+  @Test
   func `Incomplete input is typed at end of stream`() {
     var parser = TerminalInputParser()
     let bytes = Array("\u{1B}[1;".utf8)

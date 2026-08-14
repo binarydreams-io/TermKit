@@ -1,5 +1,7 @@
 /// Describes whether and when a node can receive focus.
 public struct FocusMetadata: Equatable, Sendable {
+  /// The stable focus identifier.
+  public var id: FocusID?
   /// Whether the node can receive focus.
   public var isFocusable: Bool
   /// The optional explicit focus order.
@@ -7,6 +9,14 @@ public struct FocusMetadata: Equatable, Sendable {
 
   /// Creates focus metadata.
   public init(isFocusable: Bool = false, order: Int? = nil) {
+    self.id = nil
+    self.isFocusable = isFocusable
+    self.order = order
+  }
+
+  /// Creates focus metadata with a stable identifier.
+  public init(id: FocusID, isFocusable: Bool = false, order: Int? = nil) {
+    self.id = id
     self.isFocusable = isFocusable
     self.order = order
   }
@@ -138,6 +148,11 @@ protocol MountedFrameDemandAttribute: MountedNodeAttribute {
 @MainActor
 protocol MountedStructureSamplingAttribute: MountedNodeAttribute {
   func requiresStructureSampling(on node: MountedNode, at instant: TimeInstant) -> Bool
+}
+
+@MainActor
+protocol RuntimeShutdownAttribute: MountedNodeAttribute {
+  func runtimeShutdownActions(on node: MountedNode) -> [MountedNodeAttributeAction]
 }
 
 /// An action that completes a mounted attribute update.

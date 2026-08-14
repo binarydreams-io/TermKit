@@ -171,7 +171,12 @@ public final class ViewGraph {
     var claimedPresentationNodes: Set<NodeID> = []
     let expandedDescriptor = try descriptor.map { descriptor in
       let existingRoot = root?.identity == descriptor.identity ? root : nil
-      return try expand(descriptor, reusing: existingRoot, environment: environment)
+      return try expand(
+        descriptor,
+        reusing: existingRoot,
+        environment: environment,
+        proposal: environment[ProposedCellSizeEnvironmentKey.self]
+      )
     }
     let normalizedDescriptor = try expandedDescriptor.map(normalize)
 
@@ -667,17 +672,24 @@ public final class ViewGraph {
   private func expand(
     _ input: NodeDescriptor,
     reusing existingNode: MountedNode?,
-    environment inheritedEnvironment: EnvironmentValues
+    environment inheritedEnvironment: EnvironmentValues,
+    proposal: ProposedCellSize
   ) throws -> NodeDescriptor {
     var descriptor = input
     if let scope = descriptor.expansionScope {
       var unscopedDescriptor = descriptor
       unscopedDescriptor.expansionScope = nil
       return try scope(existingNode) {
-        try expand(unscopedDescriptor, reusing: existingNode, environment: inheritedEnvironment)
+        try expand(
+          unscopedDescriptor,
+          reusing: existingNode,
+          environment: inheritedEnvironment,
+          proposal: proposal
+        )
       }
     }
     var childEnvironment = inheritedEnvironment
+    childEnvironment[ProposedCellSizeEnvironmentKey.self] = proposal
     descriptor.environmentTransform?(&childEnvironment)
     descriptor.effectiveEnvironment = childEnvironment
 
@@ -705,15 +717,53 @@ public final class ViewGraph {
       }
     }
     var resolvedPreferences = descriptor.emittedPreferences
+    let proposedChildSize = childProposal(for: descriptor, in: proposal)
     descriptor.children = try descriptor.children.enumerated().map { index, child in
       let indexedChild = child.atIndex(index)
       let existingChild = availableChildren[indexedChild.identity]
-      let expandedChild = try expand(indexedChild, reusing: existingChild, environment: childEnvironment)
+      let expandedChild = try expand(
+        indexedChild,
+        reusing: existingChild,
+        environment: childEnvironment,
+        proposal: proposedChildSize
+      )
       resolvedPreferences.reduce(expandedChild.resolvedPreferences)
       return expandedChild
     }
     descriptor.resolvedPreferences = resolvedPreferences
     return descriptor
+  }
+
+  private func childProposal(
+    for descriptor: NodeDescriptor,
+    in proposal: ProposedCellSize
+  ) -> ProposedCellSize {
+    guard let primitive = descriptor.primitive(as: LayoutPrimitive.self) else {
+      return proposal
+    }
+    switch primitive {
+    case let .stack(layout):
+      return switch layout.axis {
+      case .horizontal: ProposedCellSize(height: proposal.height)
+      case .vertical: ProposedCellSize(width: proposal.width)
+      }
+    case let .padding(layout):
+      return ProposedCellSize(
+        width: proposal.width.map {
+          max(0, layoutSubtracting($0, layoutAdding(layout.insets.leading, layout.insets.trailing)))
+        },
+        height: proposal.height.map {
+          max(0, layoutSubtracting($0, layoutAdding(layout.insets.top, layout.insets.bottom)))
+        }
+      )
+    case let .frame(layout):
+      return ProposedCellSize(
+        width: layout.width ?? proposal.width,
+        height: layout.height ?? proposal.height
+      )
+    case .scrollViewport:
+      return .unspecified
+    }
   }
 
   private func sampleMountedAttributes(
@@ -772,6 +822,19 @@ public final class ViewGraph {
       pending.append(contentsOf: node.children)
     }
     return false
+  }
+
+  func runRuntimeShutdownActions() {
+    let actions = allMountedNodes().flatMap { node in
+      node.mountedNodeAttributes.values.compactMap {
+        $0 as? any RuntimeShutdownAttribute
+      }.flatMap {
+        $0.runtimeShutdownActions(on: node)
+      }
+    }
+    for action in actions {
+      action()
+    }
   }
 
   private func plan(

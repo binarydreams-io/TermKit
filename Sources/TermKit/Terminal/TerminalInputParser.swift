@@ -351,19 +351,47 @@ extension TerminalInputParser {
 
   private func parseKittyKey(_ body: ArraySlice<UInt8>) -> TerminalKeyEvent? {
     let fields = split(body, separator: 0x3B)
-    guard let firstField = fields.first, let codePoint = integer(before: 0x3A, in: firstField) else { return nil }
+    guard (1 ... 2).contains(fields.count), let firstField = fields.first else { return nil }
+    let keyParts = split(firstField, separator: 0x3A)
+    guard (1 ... 3).contains(keyParts.count),
+          let codePoint = keyParts.first.flatMap(parseInteger),
+          let shiftedKey = kittyAlternateKey(at: 1, in: keyParts),
+          let baseLayoutKey = kittyAlternateKey(at: 2, in: keyParts)
+    else { return nil }
 
     let modifierField = fields.count > 1 ? fields[1] : []
     let modifierParts = split(modifierField, separator: 0x3A)
-    let modifiers = kittyModifiers(from: modifierParts.first.flatMap(parseInteger))
+    guard modifierParts.count <= 2 else { return nil }
+    let encodedModifiers = modifierParts.first.flatMap(parseInteger) ?? 1
+    guard encodedModifiers >= 1 else { return nil }
+    let modifiers = kittyModifiers(from: encodedModifiers)
+    let eventType = modifierParts.count > 1 ? parseInteger(modifierParts[1]) : 1
+    guard let eventType, (1 ... 3).contains(eventType) else { return nil }
     let action: TerminalKeyAction =
-      switch modifierParts.count > 1 ? parseInteger(modifierParts[1]) : 1 {
+      switch eventType {
       case 2: .repeat
       case 3: .release
       default: .press
       }
     guard let key = kittyKey(codePoint: codePoint) else { return nil }
-    return TerminalKeyEvent(key: key, modifiers: modifiers, action: action)
+    return TerminalKeyEvent(
+      key: key,
+      modifiers: modifiers,
+      action: action,
+      shiftedKey: shiftedKey,
+      baseLayoutKey: baseLayoutKey
+    )
+  }
+
+  private func kittyAlternateKey(
+    at index: Int,
+    in parts: [ArraySlice<UInt8>]
+  ) -> UnicodeScalar?? {
+    guard parts.indices.contains(index) else { return .some(nil) }
+    if parts[index].isEmpty {
+      return index == 1 && parts.count == 3 ? .some(nil) : nil
+    }
+    return parseInteger(parts[index]).flatMap(UnicodeScalar.init).map(Optional.some)
   }
 
   private func kittyKey(codePoint: Int) -> TerminalKey? {
@@ -522,10 +550,6 @@ extension TerminalInputParser {
   private func parseInteger(_ bytes: ArraySlice<UInt8>) -> Int? {
     guard bytes.isEmpty == false else { return nil }
     return Int(String(decoding: bytes, as: UTF8.self))
-  }
-
-  private func integer(before separator: UInt8, in bytes: ArraySlice<UInt8>) -> Int? {
-    parseInteger(bytes.prefix { $0 != separator })
   }
 
   private func split(_ bytes: ArraySlice<UInt8>, separator: UInt8) -> [ArraySlice<UInt8>] {

@@ -28,6 +28,10 @@ jobs:
           curl --fail --location --silent --show-error "$SWIFTLINT_MACOS_URL" --output "$RUNNER_TEMP/swiftlint.zip"
           printf '%s  %s\n' "$SWIFTLINT_MACOS_SHA256" "$RUNNER_TEMP/swiftlint.zip" | shasum -a 256 --check
           unzip -q -j "$RUNNER_TEMP/swiftlint.zip" swiftlint -d "$RUNNER_TEMP/bin"
+          curl --fail --location --silent --show-error "$SWIFTFORMAT_MACOS_URL" --output "$RUNNER_TEMP/swiftformat.zip"
+          printf '%s  %s\n' "$SWIFTFORMAT_MACOS_SHA256" "$RUNNER_TEMP/swiftformat.zip" | shasum -a 256 --check
+          unzip -q -j "$RUNNER_TEMP/swiftformat.zip" swiftformat -d "$RUNNER_TEMP/bin"
+          chmod +x "$RUNNER_TEMP/bin/swiftformat"
           case "$RUNNER_ARCH" in
             ARM64)
               ACTIONLINT_URL="$ACTIONLINT_MACOS_ARM64_URL"

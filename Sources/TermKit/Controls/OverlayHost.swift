@@ -67,6 +67,7 @@ public final class OverlayHost<Content: Sendable> {
   public private(set) var overlays: [OverlayPresentation<Content>] = []
   /// The focus manager used for modal scopes.
   public let focusManager: FocusManager
+  var invalidationHandler: (@MainActor @Sendable () -> Void)?
   private var initialFocusByOverlay: [OverlayID: FocusID] = [:]
 
   /// Creates an overlay host.
@@ -112,6 +113,7 @@ public final class OverlayHost<Content: Sendable> {
       deactivateScopes(for: previousModalOverlays)
       activateScopes(for: modalOverlays)
     }
+    invalidationHandler?()
   }
 
   /// Dismisses an overlay when modal ordering permits it.
@@ -133,6 +135,7 @@ public final class OverlayHost<Content: Sendable> {
     } else {
       initialFocusByOverlay.removeValue(forKey: overlay.id)
     }
+    invalidationHandler?()
     return overlay
   }
 
@@ -164,6 +167,10 @@ public final class OverlayHost<Content: Sendable> {
     scopeID(for: id)
   }
 
+  func initialFocus(for id: OverlayID) -> FocusID? {
+    initialFocusByOverlay[id]
+  }
+
   private func scopeID(for id: OverlayID) -> FocusScopeID {
     FocusScopeID(rawValue: "overlay-\(id.rawValue)")
   }
@@ -184,6 +191,29 @@ public final class OverlayHost<Content: Sendable> {
         initialFocus: initialFocusByOverlay[overlay.id]
       )
     }
+  }
+}
+
+/// An overlay host that stores declarative views.
+public typealias ViewOverlayHost = OverlayHost<AnyView>
+
+extension OverlayHost where Content == AnyView {
+  /// Presents a declarative view after erasing its concrete type.
+  public func present(
+    _ overlay: OverlayPresentation<some View & Sendable>,
+    initialFocus: FocusID? = nil
+  ) {
+    present(
+      OverlayPresentation(
+        id: overlay.id,
+        content: AnyView(overlay.content),
+        kind: overlay.kind,
+        isModal: overlay.isModal,
+        dismissOnEscape: overlay.dismissOnEscape,
+        zIndex: overlay.zIndex
+      ),
+      initialFocus: initialFocus
+    )
   }
 }
 

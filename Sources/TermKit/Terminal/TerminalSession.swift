@@ -88,6 +88,8 @@ public final class TerminalSession {
   public private(set) var state: TerminalSessionState = .inactive
 
   private var originalAttributes: termios?
+  private var titleOverride: String?
+  private var didSaveTitle = false
 
   /// Creates an inactive terminal session without terminal I/O.
   public init(
@@ -150,6 +152,24 @@ public final class TerminalSession {
   /// Updates the synchronized-output state from a completed probe.
   public func applySynchronizedOutputProbeResult(_ result: SynchronizedOutputProbeResult) {
     capabilities = SynchronizedOutputProbe.applying(result, to: capabilities)
+  }
+
+  /// Sets the title for the active terminal session.
+  ///
+  /// The method removes C0 and C1 control scalars. It does nothing when title changes are unsupported.
+  ///
+  /// - Throws: ``TerminalSessionError`` when the supported operation is inactive or terminal output fails.
+  public func setTitle(_ title: String) throws {
+    try updateTitle(to: sanitizedTitle(title), operation: "setTitle")
+  }
+
+  /// Clears the title for the active terminal session.
+  ///
+  /// The method does nothing when title changes are unsupported. The session restores the saved title when it suspends or stops.
+  ///
+  /// - Throws: ``TerminalSessionError`` when the supported operation is inactive or terminal output fails.
+  public func clearTitle() throws {
+    try updateTitle(to: "", operation: "clearTitle")
   }
 
   /// Writes a complete frame and uses synchronized output when supported.
@@ -250,7 +270,15 @@ extension TerminalSession {
 
     do {
       try transport.writeAll(activationBytes())
+      if let titleOverride, capabilities.supportsTerminalTitle {
+        try saveTitle()
+        try transport.writeAll(Array(titleSequence(titleOverride).utf8))
+      }
     } catch let error as TerminalTransportError {
+      let restoresTitle = didSaveTitle
+      if (try? transport.writeAll(deactivationBytes())) != nil, restoresTitle {
+        didSaveTitle = false
+      }
       try? restoreAttributes()
       throw TerminalSessionError.transport(error)
     }
@@ -261,12 +289,18 @@ extension TerminalSession {
     try restoreTerminalModes()
     state = .inactive
     originalAttributes = nil
+    titleOverride = nil
+    didSaveTitle = false
   }
 
   private func restoreTerminalModes() throws {
     var firstError: TerminalSessionError?
+    let restoresTitle = didSaveTitle
     do {
       try transport.writeAll(deactivationBytes())
+      if restoresTitle {
+        didSaveTitle = false
+      }
     } catch let error as TerminalTransportError {
       firstError = .transport(error)
     }
@@ -313,13 +347,13 @@ extension TerminalSession {
       output += "\u{1B}[?2004h"
     }
     if configuration.enablesSGRMouse, capabilities.supportsSGRMouse {
-      output += "\u{1B}[?1000h\u{1B}[?1006h"
+      output += "\u{1B}[?1002h\u{1B}[?1006h"
     }
     if configuration.enablesFocusReporting, capabilities.supportsFocusReporting {
       output += "\u{1B}[?1004h"
     }
     if configuration.enablesKittyKeyboard, capabilities.supportsKittyKeyboard {
-      output += "\u{1B}[>1u"
+      output += "\u{1B}[>5u"
     }
     return Array(output.utf8)
   }
@@ -340,6 +374,39 @@ extension TerminalSession {
     if configuration.usesAlternateScreen {
       output += "\u{1B}[?1049l"
     }
+    if didSaveTitle {
+      output += "\u{1B}[23;2t"
+    }
     return Array(output.utf8)
+  }
+
+  private func updateTitle(to title: String, operation: String) throws {
+    guard capabilities.supportsTerminalTitle else { return }
+    guard state == .active else {
+      throw TerminalSessionError.invalidTransition(from: state, operation: operation)
+    }
+    do {
+      try saveTitle()
+      try transport.writeAll(Array(titleSequence(title).utf8))
+      titleOverride = title
+    } catch let error as TerminalTransportError {
+      throw TerminalSessionError.transport(error)
+    }
+  }
+
+  private func saveTitle() throws {
+    guard didSaveTitle == false else { return }
+    try transport.writeAll(Array("\u{1B}[22;2t".utf8))
+    didSaveTitle = true
+  }
+
+  private func titleSequence(_ title: String) -> String {
+    "\u{1B}]2;\(title)\u{07}"
+  }
+
+  private func sanitizedTitle(_ title: String) -> String {
+    String(title.unicodeScalars.filter { scalar in
+      scalar.value >= 0x20 && !(0x7F ... 0x9F).contains(scalar.value)
+    })
   }
 }

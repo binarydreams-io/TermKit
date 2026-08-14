@@ -88,6 +88,31 @@ private enum SelectListDisplayRow<ID: Hashable & Sendable> {
   case item(SelectListItem<ID>, isDetail: Bool)
 }
 
+/// The values available to custom select-list row content.
+public struct SelectListRowConfiguration<ID: Hashable & Sendable>: Sendable, Hashable {
+  /// The item for the row.
+  public let item: SelectListItem<ID>
+  /// A Boolean value that indicates whether the row is selected.
+  public let isSelected: Bool
+
+  /// Creates a row configuration.
+  public init(item: SelectListItem<ID>, isSelected: Bool) {
+    self.item = item
+    self.isSelected = isSelected
+  }
+}
+
+private struct SelectListContentLayoutEntry<ID: Hashable & Sendable> {
+  enum Content {
+    case group(String)
+    case item(SelectListItem<ID>, any SemanticRenderable)
+  }
+
+  var content: Content
+  var y: Int
+  var height: Int
+}
+
 /// A searchable, grouped selection model.
 @MainActor
 public final class SelectList<ID: Hashable & Sendable> {
@@ -110,6 +135,7 @@ public final class SelectList<ID: Hashable & Sendable> {
   /// The action invoked when an item activates.
   public var onActivate: (@MainActor @Sendable (_ id: ID) -> Void)?
   fileprivate var renderedViewportHeight: Int?
+  fileprivate var renderedViewportWidth: Int?
 
   /// Creates a select list and normalizes its initial selection.
   /// - Complexity: O(*n*), where *n* is the number of items.
@@ -239,6 +265,15 @@ public final class SelectList<ID: Hashable & Sendable> {
     SelectListView(list: self, rowHeight: rowHeight)
   }
 
+  /// Creates a view that uses custom content for each item row.
+  /// - Complexity: O(1).
+  public func view(
+    rowHeight: Int = 1,
+    rowContent: @escaping @MainActor @Sendable (_ configuration: SelectListRowConfiguration<ID>) -> some SemanticRenderable
+  ) -> SelectListView<ID> {
+    SelectListView(list: self, rowHeight: rowHeight, rowContent: rowContent)
+  }
+
   /// Returns an offset that keeps the selection visible in a viewport.
   /// - Complexity: O(*n*), where *n* is the number of display rows.
   public func scrollOffset(viewportHeight: Int, currentOffset: Int, rowHeight: Int = 1) -> Int {
@@ -333,12 +368,26 @@ public struct SelectListView<ID: Hashable & Sendable>: View, SemanticRenderable,
   public let list: SelectList<ID>
   /// The minimum visual height of each item.
   public let rowHeight: Int
+  private let rowContent: (@MainActor @Sendable (SelectListRowConfiguration<ID>) -> any SemanticRenderable)?
 
   /// Creates a select-list view.
   public init(list: SelectList<ID>, rowHeight: Int = 1) {
     precondition(rowHeight > 0, "A select-list row height must be positive.")
     self.list = list
     self.rowHeight = rowHeight
+    self.rowContent = nil
+  }
+
+  /// Creates a select-list view that uses custom content for each item row.
+  public init(
+    list: SelectList<ID>,
+    rowHeight: Int = 1,
+    rowContent: @escaping @MainActor @Sendable (_ configuration: SelectListRowConfiguration<ID>) -> some SemanticRenderable
+  ) {
+    precondition(rowHeight > 0, "A select-list row height must be positive.")
+    self.list = list
+    self.rowHeight = rowHeight
+    self.rowContent = { configuration in rowContent(configuration) }
   }
 
   /// The focusable primitive node descriptor.
@@ -347,7 +396,7 @@ public struct SelectListView<ID: Hashable & Sendable>: View, SemanticRenderable,
       NodeDescriptor(
         type: Self.self,
         primitive: self,
-        focus: FocusMetadata(isFocusable: true),
+        focus: FocusMetadata(id: FocusID(rawValue: list.id.rawValue), isFocusable: true),
         hitTest: HitTestMetadata(isEnabled: true),
         dirtyOnUpdate: .layout
       )
@@ -357,6 +406,20 @@ public struct SelectListView<ID: Hashable & Sendable>: View, SemanticRenderable,
   /// Returns the list size constrained by a proposal.
   /// - Complexity: O(*n*), where *n* is the number of filtered items.
   public func sizeThatFits(_ proposal: ProposedCellSize) -> CellSize {
+    if rowContent != nil {
+      let entries = contentLayout(width: proposal.width)
+      let naturalWidth = entries.map { entry in
+        switch entry.content {
+        case let .group(title): TerminalWidth.width(of: title)
+        case let .item(_, content): content.sizeThatFits(.unspecified).width
+        }
+      }.max() ?? 0
+      let footerWidth = list.footerActions.map(Self.footerText).joined(separator: "  ")
+      let width = min(max(naturalWidth, TerminalWidth.width(of: footerWidth)), proposal.width ?? .max)
+      let rows = entries.last.map { $0.y + $0.height } ?? 0
+      let height = rows + (list.footerActions.isEmpty ? 0 : 1)
+      return CellSize(width: width, height: min(height, proposal.height ?? height))
+    }
     let rows = list.displayRows(rowHeight: rowHeight).count + (list.footerActions.isEmpty ? 0 : 1)
     let itemWidths = list.filteredItems.map { item in
       max(TerminalWidth.width(of: item.title), item.details.map(TerminalWidth.width(of:)) ?? 0) + 2
@@ -377,6 +440,9 @@ public struct SelectListView<ID: Hashable & Sendable>: View, SemanticRenderable,
     context: PaintContext,
     resources: inout ControlRenderResources
   ) throws -> SemanticNode {
+    if rowContent != nil {
+      return try paintContent(into: &surface, context: context, resources: &resources)
+    }
     let rows = list.displayRows(rowHeight: rowHeight)
     let footerHeight = list.footerActions.isEmpty ? 0 : 1
     let viewportHeight = max(0, context.clip.height - footerHeight)
@@ -461,6 +527,24 @@ public struct SelectListView<ID: Hashable & Sendable>: View, SemanticRenderable,
       return false
     }
     guard point.y >= 0, point.y < viewportHeight else { return false }
+    if rowContent != nil {
+      let entries = contentLayout(width: list.renderedViewportWidth)
+      let offset = contentScrollOffset(entries: entries, viewportHeight: viewportHeight, currentOffset: 0)
+      var frames: [ID: CellRect] = [:]
+      for entry in entries {
+        guard case let .item(item, _) = entry.content else { continue }
+        let visibleStart = max(entry.y, offset)
+        let visibleEnd = min(entry.y + entry.height, offset + viewportHeight)
+        guard visibleStart < visibleEnd else { continue }
+        frames[item.id] = CellRect(
+          x: 0,
+          y: visibleStart - offset,
+          width: Int.max,
+          height: visibleEnd - visibleStart
+        )
+      }
+      return list.handleMouse(at: point, rowFrames: frames, activate: true) != nil
+    }
     let rows = list.displayRows(rowHeight: rowHeight)
     let offset = list.scrollOffset(viewportHeight: viewportHeight, currentOffset: 0, rowHeight: rowHeight)
     guard rows.indices.contains(offset + point.y) else { return false }
@@ -479,5 +563,91 @@ public struct SelectListView<ID: Hashable & Sendable>: View, SemanticRenderable,
 
   private nonisolated static func footerText(_ action: SelectListFooterAction) -> String {
     action.shortcut.map { "\(action.title) [\($0.normalizedDescription)]" } ?? action.title
+  }
+
+  private func contentLayout(width: Int?) -> [SelectListContentLayoutEntry<ID>] {
+    guard let rowContent else { return [] }
+    var entries: [SelectListContentLayoutEntry<ID>] = []
+    var y = 0
+    for group in list.groups {
+      if let title = group.title {
+        entries.append(SelectListContentLayoutEntry(content: .group(title), y: y, height: 1))
+        y += 1
+      }
+      for item in group.items {
+        let content = rowContent(SelectListRowConfiguration(item: item, isSelected: item.id == list.selectedID))
+        let contentHeight = content.sizeThatFits(ProposedCellSize(width: width)).height
+        let height = max(rowHeight, contentHeight)
+        entries.append(SelectListContentLayoutEntry(content: .item(item, content), y: y, height: height))
+        y += height
+      }
+    }
+    return entries
+  }
+
+  private func contentScrollOffset(
+    entries: [SelectListContentLayoutEntry<ID>],
+    viewportHeight: Int,
+    currentOffset: Int
+  ) -> Int {
+    let contentHeight = entries.last.map { $0.y + $0.height } ?? 0
+    let boundedViewportHeight = max(0, viewportHeight)
+    let maximumOffset = max(0, contentHeight - boundedViewportHeight)
+    let boundedOffset = min(max(0, currentOffset), maximumOffset)
+    guard boundedViewportHeight > 0, let selectedID = list.selectedID,
+          let selected = entries.first(where: {
+            guard case let .item(item, _) = $0.content else { return false }
+            return item.id == selectedID
+          })
+    else {
+      return boundedOffset
+    }
+    if selected.y < boundedOffset {
+      return selected.y
+    }
+    let end = selected.y + selected.height
+    if end > boundedOffset + boundedViewportHeight {
+      return min(maximumOffset, end - boundedViewportHeight)
+    }
+    return boundedOffset
+  }
+
+  private func paintContent(
+    into surface: inout Surface,
+    context: PaintContext,
+    resources: inout ControlRenderResources
+  ) throws -> SemanticNode {
+    let entries = contentLayout(width: context.clip.width)
+    let footerHeight = list.footerActions.isEmpty ? 0 : 1
+    let viewportHeight = max(0, context.clip.height - footerHeight)
+    list.renderedViewportHeight = viewportHeight
+    list.renderedViewportWidth = context.clip.width
+    let offset = contentScrollOffset(entries: entries, viewportHeight: viewportHeight, currentOffset: 0)
+    let viewportClip = CellRect(
+      origin: context.clip.origin,
+      size: CellSize(width: context.clip.width, height: viewportHeight)
+    )
+    for entry in entries where entry.y + entry.height > offset && entry.y < offset + viewportHeight {
+      let rowContext = PaintContext(
+        clip: viewportClip,
+        origin: context.origin.offsetBy(dy: entry.y - offset)
+      )
+      switch entry.content {
+      case let .group(title):
+        _ = try Text(title, style: CellStyle(attributes: [.bold, .dim]))
+          .paint(into: &surface, context: rowContext, resources: &resources)
+      case let .item(_, content):
+        _ = try content.paint(into: &surface, context: rowContext, resources: &resources)
+      }
+    }
+    if footerHeight > 0 {
+      let footer = list.footerActions.map(Self.footerText).joined(separator: "  ")
+      _ = try Text(footer, style: CellStyle(attributes: .dim)).paint(
+        into: &surface,
+        context: PaintContext(clip: context.clip, origin: context.origin.offsetBy(dy: viewportHeight)),
+        resources: &resources
+      )
+    }
+    return list.semanticNode(frame: context.clip)
   }
 }

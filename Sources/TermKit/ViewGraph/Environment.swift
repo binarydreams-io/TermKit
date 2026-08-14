@@ -47,6 +47,12 @@ public enum TerminalSizeEnvironmentKey: EnvironmentKey {
   public static let defaultValue = CellSize.zero
 }
 
+/// Provides the size that the parent layout proposes to a view.
+public enum ProposedCellSizeEnvironmentKey: EnvironmentKey {
+  /// The proposal used outside a layout runtime.
+  public static let defaultValue = ProposedCellSize.unspecified
+}
+
 private struct AnyEnvironmentValue: Sendable {
   let value: any Sendable
   private let isEqual: @Sendable (any Sendable) -> Bool

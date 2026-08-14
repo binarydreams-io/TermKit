@@ -10,7 +10,7 @@ import Glibc
 
 #if canImport(Darwin) || canImport(Glibc)
 private let terminalTestActivationBytes = Array(
-  "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1000h\u{1B}[?1006h\u{1B}[?1004h".utf8
+  "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1002h\u{1B}[?1006h\u{1B}[?1004h".utf8
 )
 private let terminalTestDeactivationBytes = Array(
   ("\u{1B}[?1004l"
@@ -46,7 +46,7 @@ struct TerminalEventSourceTests {
       outputFileDescriptor: pty.slaveFileDescriptor
     )
     let session = TerminalSession(transport: transport)
-    let activationByteCount = "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1000h\u{1B}[?1006h\u{1B}[?1004h".utf8.count
+    let activationByteCount = "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1002h\u{1B}[?1006h\u{1B}[?1004h".utf8.count
     let start = try pty.captureOutput(exactByteCount: activationByteCount) {
       try session.start()
     }

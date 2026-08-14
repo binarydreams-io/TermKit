@@ -168,6 +168,39 @@ struct SelectListTests {
     #expect(view.activate(at: CellPoint(x: 1, y: 4)))
     #expect(recorder.values == ["item-1", "footer"])
   }
+
+  @Test
+  func `custom row content preserves groups scrolling and selection`() throws {
+    let recorder = CommandRecorder()
+    let list = SelectList(
+      items: [
+        SelectListItem(id: 1, title: "One", group: "First"),
+        SelectListItem(id: 2, title: "Two", group: "Second")
+      ],
+      onActivate: { recorder.values.append("item-\($0)") }
+    )
+    _ = list.select(at: 1)
+    let view = list.view { configuration in
+      Text(
+        "\(configuration.item.title.uppercased())\nitem-\(configuration.item.id)",
+        style: CellStyle(attributes: configuration.isSelected ? .inverse : [])
+      )
+    }
+    var resources = ControlRenderResources()
+    var surface = Surface(size: CellSize(width: 20, height: 3))
+
+    let semantics = try view.paint(
+      into: &surface,
+      context: PaintContext(clip: surface.bounds),
+      resources: &resources
+    )
+
+    #expect(lines(in: surface, resources: resources) == ["Second", "TWO", "item-2"])
+    #expect(style(at: CellPoint(x: 0, y: 1), in: surface, resources: resources).attributes.contains(.inverse))
+    #expect(semantics.children[1].state.contains(.selected))
+    #expect(view.activate(at: CellPoint(x: 0, y: 2)))
+    #expect(recorder.values == ["item-2"])
+  }
 }
 
 private func lines(

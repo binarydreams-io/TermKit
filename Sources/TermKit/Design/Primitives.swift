@@ -453,16 +453,42 @@ public enum StatusKind: Sendable, Hashable {
   case error
 }
 
-/// A compact, padded status label.
+/// A semantic tone for a status pill.
+public typealias StatusPillTone = StatusKind
+
+/// The amount of decoration around a status pill.
+public enum StatusPillPresentation: Sendable, Hashable {
+  /// Text with one cell of horizontal padding.
+  case pill
+  /// Text without horizontal padding.
+  case bare
+}
+
+/// A compact status label with optional padding.
 public struct StatusPill: SemanticRenderable, Hashable {
   /// The semantic identifier.
   public var id: SemanticID
   /// The status text.
   public var text: String
   /// The semantic status kind.
-  public var kind: StatusKind
+  public var kind: StatusKind {
+    didSet { updateThemeStyle() }
+  }
+
+  /// The semantic status tone.
+  public var tone: StatusPillTone {
+    get { kind }
+    set { kind = newValue }
+  }
+
   /// The pill style.
   public var style: CellStyle
+  /// The pill presentation.
+  public var presentation: StatusPillPresentation {
+    didSet { updateThemeStyle() }
+  }
+
+  private var resolvedTheme: ResolvedSemanticTheme?
 
   /// Creates a status pill.
   public init(text: String, style: CellStyle, id: SemanticID = "status", kind: StatusKind = .neutral) {
@@ -470,12 +496,50 @@ public struct StatusPill: SemanticRenderable, Hashable {
     self.text = text
     self.kind = kind
     self.style = style
+    self.presentation = .pill
+    self.resolvedTheme = nil
+  }
+
+  /// Creates a status pill with a style from a resolved semantic theme.
+  public init(
+    text: String,
+    tone: StatusPillTone,
+    theme: ResolvedSemanticTheme,
+    id: SemanticID = "status",
+    presentation: StatusPillPresentation = .pill
+  ) {
+    self.id = id
+    self.text = text
+    self.kind = tone
+    self.presentation = presentation
+    self.resolvedTheme = theme
+    self.style = .default
+    updateThemeStyle()
+  }
+
+  /// Creates a status pill with a style from a semantic theme.
+  /// - Throws: ``SemanticThemeError`` if the theme cannot resolve its colors.
+  public init(
+    text: String,
+    tone: StatusPillTone,
+    theme: SemanticTheme,
+    scheme: ColorScheme = .dark,
+    id: SemanticID = "status",
+    presentation: StatusPillPresentation = .pill
+  ) throws {
+    try self.init(
+      text: text,
+      tone: tone,
+      theme: theme.resolve(scheme: scheme),
+      id: id,
+      presentation: presentation
+    )
   }
 
   /// Returns the pill size constrained by a proposal.
   /// - Complexity: O(*n*), where *n* is the text length.
   public func sizeThatFits(_ proposal: ProposedCellSize) -> CellSize {
-    let width = TerminalWidth.width(of: text) + 2
+    let width = TerminalWidth.width(of: text) + (presentation == .pill ? 2 : 0)
     return CellSize(width: min(width, proposal.width ?? width), height: min(1, proposal.height ?? 1))
   }
 
@@ -486,12 +550,41 @@ public struct StatusPill: SemanticRenderable, Hashable {
     context: PaintContext,
     resources: inout ControlRenderResources
   ) throws -> SemanticNode {
+    let renderedText = presentation == .pill ? " \(text) " : text
     let frame = try SurfaceTextPainter.paint(
-      [StyledRun(" \(text) ", style: style)],
+      [StyledRun(renderedText, style: style)],
       into: &surface,
       context: context,
       resources: &resources
     )
     return SemanticNode(id: id, role: .status, label: text, value: String(describing: kind), frame: frame)
+  }
+
+  private static func colorRole(for tone: StatusPillTone) -> SemanticColorRole {
+    switch tone {
+    case .neutral: .secondary
+    case .info: .info
+    case .success: .success
+    case .warning: .warning
+    case .error: .error
+    }
+  }
+
+  private mutating func updateThemeStyle() {
+    guard let resolvedTheme else { return }
+    let color = resolvedTheme[Self.colorRole(for: tone)]
+    style = switch presentation {
+    case .pill:
+      CellStyle(
+        foreground: .rgba(
+          SemanticTheme.readableText(
+            over: color.composited(over: resolvedTheme[.background])
+          )
+        ),
+        background: .rgba(color)
+      )
+    case .bare:
+      CellStyle(foreground: .rgba(color))
+    }
   }
 }

@@ -36,7 +36,17 @@ public struct StackLayout: Sendable, Hashable {
     case .vertical:
       ProposedCellSize(width: proposal.width)
     }
-    let sizes = items.map { cache.measure($0, in: childProposal) }
+    var sizes = items.map { cache.measure($0, in: childProposal) }
+    let spacerIndices = items.indices.filter { items[$0].spacerMinimumLength != nil }
+    for index in spacerIndices {
+      let minimumLength = items[index].spacerMinimumLength ?? 0
+      switch axis {
+      case .horizontal:
+        sizes[index].width = max(sizes[index].width, minimumLength)
+      case .vertical:
+        sizes[index].height = max(sizes[index].height, minimumLength)
+      }
+    }
     let totalSpacing = layoutMultiplying(spacing, max(0, items.count - 1))
     let naturalSize = switch axis {
     case .horizontal:
@@ -49,6 +59,31 @@ public struct StackLayout: Sendable, Hashable {
         width: sizes.map(\.width).max() ?? 0,
         height: sizes.reduce(totalSpacing) { layoutAdding($0, $1.height) }
       )
+    }
+    let proposedPrimaryLength = switch axis {
+    case .horizontal: proposal.width
+    case .vertical: proposal.height
+    }
+    let naturalPrimaryLength = switch axis {
+    case .horizontal: naturalSize.width
+    case .vertical: naturalSize.height
+    }
+    if let proposedPrimaryLength,
+       proposedPrimaryLength > naturalPrimaryLength,
+       spacerIndices.isEmpty == false
+    {
+      let remaining = layoutSubtracting(proposedPrimaryLength, naturalPrimaryLength)
+      let increment = remaining / spacerIndices.count
+      let remainder = remaining % spacerIndices.count
+      for (offset, index) in spacerIndices.enumerated() {
+        let extra = layoutAdding(increment, offset < remainder ? 1 : 0)
+        switch axis {
+        case .horizontal:
+          sizes[index].width = layoutAdding(sizes[index].width, extra)
+        case .vertical:
+          sizes[index].height = layoutAdding(sizes[index].height, extra)
+        }
+      }
     }
     let container = CellSize(
       width: proposal.width ?? naturalSize.width,

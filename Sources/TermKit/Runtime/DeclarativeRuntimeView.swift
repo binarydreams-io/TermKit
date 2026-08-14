@@ -3,6 +3,12 @@ protocol DeclarativeSemanticActionRuntimeView: AnyObject {
   func performSemanticAction(_ action: SemanticAction, on id: SemanticID) -> Bool
 }
 
+private struct RuntimeOverlayLayoutPrimitive: Sendable, Hashable {}
+
+private struct RuntimeOverlayItemPrimitive: Sendable, Hashable {
+  var kind: OverlayKind
+}
+
 @MainActor
 final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, DeclarativeSemanticActionRuntimeView {
   struct Counters: Equatable {
@@ -33,11 +39,14 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
   }
 
   private let root: Root
+  private let overlayHost: ViewOverlayHost?
   private let layoutCache = LayoutCache()
   private weak var graph: ViewGraph?
   private var clips: [NodeID: CellRect] = [:]
   private var presentations: [NodeID: Presentation] = [:]
   private var focusedNodeID: NodeID?
+  private var activeModalScopes: [String] = []
+  private var focusRestoration: [String: NodeID?] = [:]
   private var retainedFrames: [NodeID: CellRect] = [:]
   private var previousAnimatedBounds: [NodeID: CellRect] = [:]
   private var layoutProposals: [NodeID: ProposedCellSize] = [:]
@@ -86,13 +95,42 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
     let requiresFullPaint: Bool
   }
 
-  init(root: Root) {
+  init(root: Root, overlayHost: ViewOverlayHost? = nil) {
     self.root = root
+    self.overlayHost = overlayHost
   }
 
   func nodeDescriptor(in context: RuntimeFrameContext) -> NodeDescriptor {
     usesReducedMotion = context.motionPolicy == .reduced
-    return NodeDescriptor.makeDeclarative(root).scopedExpansion { _, body in
+    let descriptor: NodeDescriptor
+    if let overlayHost {
+      var rootDescriptor = NodeDescriptor.makeDeclarative(root).atIndex(0)
+      rootDescriptor.hitTest.zIndex = Int.min
+      var children = [rootDescriptor]
+      children.append(contentsOf: overlayHost.orderedOverlays.map { overlay in
+        NodeDescriptor(
+          type: RuntimeOverlayItemPrimitive.self,
+          key: overlay.id,
+          primitive: RuntimeOverlayItemPrimitive(kind: overlay.kind),
+          children: [NodeDescriptor.makeDeclarative(overlay.content)],
+          hitTest: HitTestMetadata(
+            disablesDescendants: false,
+            zIndex: overlay.zIndex,
+            modalScope: overlay.isModal ? overlay.id.rawValue : nil
+          ),
+          dirtyOnUpdate: .layout
+        )
+      })
+      descriptor = NodeDescriptor(
+        type: RuntimeOverlayLayoutPrimitive.self,
+        primitive: RuntimeOverlayLayoutPrimitive(),
+        children: children,
+        dirtyOnUpdate: .layout
+      )
+    } else {
+      descriptor = NodeDescriptor.makeDeclarative(root)
+    }
+    return descriptor.scopedExpansion { _, body in
       try withTransaction(context.transaction, body)
     }
   }
@@ -216,6 +254,7 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
       focusedNodeID = nil
     }
     rebuildSceneChildCache(graph: graph)
+    synchronizeModalFocus(in: graph)
   }
 
   func paint(
@@ -312,6 +351,12 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
   func dispatch(_ event: TerminalInputEvent) {
     guard let graph else { return }
     switch event {
+    case let .key(key) where key.action != .release && key.key == .escape:
+      if overlayHost?.handleEscape() == true {
+        return
+      }
+      guard let focusedNodeID, let node = graph.node(withID: focusedNodeID) else { return }
+      _ = dispatch(key, to: node)
     case let .key(key) where key.action != .release && key.key == .tab:
       if let focusedNodeID,
          let node = graph.node(withID: focusedNodeID),
@@ -322,6 +367,8 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
       moveFocus(backward: key.modifiers.contains(.shift), in: graph)
     case let .key(key) where key.action != .release:
       guard let focusedNodeID, let node = graph.node(withID: focusedNodeID) else { return }
+      let modalScope = graph.root.flatMap(topmostModalScope)
+      guard modalScope == nil || node.activeModalScope == modalScope else { return }
       if dispatchShortcut(key, to: node) == false,
          dispatch(key, to: node) == false,
          key.key == .enter
@@ -523,6 +570,40 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
   private func layoutResult(for node: MountedNode, proposal: ProposedCellSize) -> LayoutResult {
     let items = node.children.map { child in
       LayoutItem(node: child) { [self] childProposal in measure(child, proposal: childProposal) }
+    }
+    if node.primitive(as: RuntimeOverlayLayoutPrimitive.self) != nil {
+      let sizes = items.map { layoutCache.measure($0, in: proposal) }
+      let natural = CellSize(
+        width: sizes.map(\.width).max() ?? 0,
+        height: sizes.map(\.height).max() ?? 0
+      )
+      let container = proposal.replacingUnspecifiedDimensions(by: natural)
+      let placements = zip(zip(node.children, items), sizes).map { pair, size in
+        let (child, item) = pair
+        guard let overlay = child.primitive(as: RuntimeOverlayItemPrimitive.self) else {
+          return LayoutPlacement(
+            nodeID: item.nodeID,
+            frame: CellRect(origin: .zero, size: container)
+          )
+        }
+        let origin = switch overlay.kind {
+        case .toast:
+          CellPoint(
+            x: max(0, container.width - size.width - 1),
+            y: min(1, max(0, container.height - size.height))
+          )
+        case .dialog, .menu, .custom:
+          CellPoint(
+            x: max(0, (container.width - size.width) / 2),
+            y: max(0, (container.height - size.height) / 2)
+          )
+        }
+        return LayoutPlacement(
+          nodeID: item.nodeID,
+          frame: CellRect(origin: origin, size: size)
+        )
+      }
+      return LayoutResult(size: container, placements: placements)
     }
     guard let primitive = node.primitive(as: LayoutPrimitive.self) else {
       let sizes = items.map { layoutCache.measure($0, in: proposal) }
@@ -1084,6 +1165,46 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
     if let id, let new = graph.node(withID: id) {
       new.primitive(as: (any ControlFocusHandler).self)?.controlFocusChanged(true)
       new.invalidate(.paint)
+    }
+  }
+
+  private func synchronizeModalFocus(in graph: ViewGraph) {
+    let newScopes = overlayHost?.orderedOverlays.filter(\.isModal).map(\.id.rawValue) ?? []
+    let commonCount = zip(activeModalScopes, newScopes).prefix { $0 == $1 }.count
+
+    for scope in activeModalScopes.dropFirst(commonCount).reversed() {
+      let restoration = focusRestoration.removeValue(forKey: scope).flatMap(\.self)
+      setFocusedNodeID(restoration, in: graph)
+    }
+    for scope in newScopes.dropFirst(commonCount) {
+      focusRestoration[scope] = focusedNodeID
+      setFocusedNodeID(preferredFocusableNode(in: scope, graph: graph)?.id, in: graph)
+    }
+    activeModalScopes = newScopes
+
+    if let activeScope = newScopes.last,
+       focusedNodeID.flatMap({ graph.node(withID: $0) })?.activeModalScope != activeScope
+    {
+      setFocusedNodeID(preferredFocusableNode(in: activeScope, graph: graph)?.id, in: graph)
+    }
+  }
+
+  private func preferredFocusableNode(in scope: String, graph: ViewGraph) -> MountedNode? {
+    if let overlayID = overlayHost?.orderedOverlays.first(where: { $0.id.rawValue == scope })?.id,
+       let initialFocus = overlayHost?.initialFocus(for: overlayID),
+       let node = graph.focusableNodes().first(where: {
+         $0.activeModalScope == scope && $0.focusMetadata.id == initialFocus
+       })
+    {
+      return node
+    }
+    return firstFocusableNode(in: scope, graph: graph)
+  }
+
+  private func firstFocusableNode(in scope: String, graph: ViewGraph) -> MountedNode? {
+    graph.focusableNodes().filter { $0.activeModalScope == scope }.min {
+      ($0.focusMetadata.order ?? Int.max, $0.id.rawValue)
+        < ($1.focusMetadata.order ?? Int.max, $1.id.rawValue)
     }
   }
 

@@ -2,6 +2,20 @@
 
 All notable changes appear in this file.
 
+## 2.2.0 - 2026-08-14
+
+### Added
+
+- Runtime overlays with z-order, modal focus, Escape dismissal, focus restoration, and timeline-driven toast expiry.
+- Proposed-size geometry, flexible stack spacers, appearance hooks, and cancellable view tasks.
+- Kitty base-layout keys, JCUKEN hotkey normalization, terminal titles, OSC 52 detection, and grid-aware text selection.
+- Custom `SelectList` rows, static `Sparkline` charts, and semantic `StatusPill` tones with a bare presentation.
+
+### Changed
+
+- SGR mouse sessions now request button-motion events for text-selection drags.
+- The bundled version resource and release metadata now report `2.2.0`.
+
 ## 2.1.0 - 2026-08-14
 
 ### Added

@@ -72,12 +72,14 @@ public struct CellAlignment: Sendable, Hashable {
 public struct LayoutItem: Sendable {
   /// The identifier of the measured node.
   public let nodeID: NodeID
+  let spacerMinimumLength: Int?
   private let generationBody: @MainActor @Sendable () -> UInt64
   private let measureBody: @MainActor @Sendable (ProposedCellSize) -> CellSize
 
   /// Creates an item with a custom measurement operation.
   public init(nodeID: NodeID, measure: @escaping @MainActor @Sendable (_ proposal: ProposedCellSize) -> CellSize) {
     self.nodeID = nodeID
+    self.spacerMinimumLength = nil
     self.generationBody = { 0 }
     self.measureBody = measure
   }
@@ -86,6 +88,7 @@ public struct LayoutItem: Sendable {
   @MainActor
   public init(node: MountedNode, measure: @escaping @MainActor @Sendable (_ proposal: ProposedCellSize) -> CellSize) {
     self.nodeID = node.id
+    self.spacerMinimumLength = Self.spacerMinimumLength(in: node)
     self.generationBody = { node.layoutGeneration }
     self.measureBody = measure
   }
@@ -120,6 +123,17 @@ public struct LayoutItem: Sendable {
   @MainActor
   var layoutGeneration: UInt64 {
     generationBody()
+  }
+
+  @MainActor
+  private static func spacerMinimumLength(in node: MountedNode) -> Int? {
+    if let spacer = node.value(as: SpacerLayoutValue.self) {
+      return spacer.minimumLength
+    }
+    guard node.primitive == nil, node.children.count == 1, let child = node.children.first else {
+      return nil
+    }
+    return spacerMinimumLength(in: child)
   }
 }
 

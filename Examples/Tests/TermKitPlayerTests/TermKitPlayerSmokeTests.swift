@@ -9,7 +9,7 @@ import Glibc
 
 #if canImport(Darwin) || canImport(Glibc)
 struct TermKitPlayerSmokeTests {
-  private let activation = "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1000h\u{1B}[?1006h\u{1B}[?1004h"
+  private let activation = "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1002h\u{1B}[?1006h\u{1B}[?1004h"
   private let restoration =
     "\u{1B}[?1004l"
       + "\u{1B}[?9l\u{1B}[?1000l\u{1B}[?1001l\u{1B}[?1002l\u{1B}[?1003l"

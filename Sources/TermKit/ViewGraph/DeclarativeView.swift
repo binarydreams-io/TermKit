@@ -27,6 +27,21 @@ public protocol View {
   @ViewBuilder var graphBody: [NodeDescriptor] { get }
 }
 
+/// A type-erased declarative view.
+public struct AnyView: View, @unchecked Sendable {
+  private let body: @MainActor () -> [NodeDescriptor]
+
+  /// Creates a type-erased view.
+  public init(_ view: some View) {
+    self.body = { view.graphBody }
+  }
+
+  /// The descriptors from the wrapped view.
+  public var graphBody: [NodeDescriptor] {
+    body()
+  }
+}
+
 /// Builds arrays of node descriptors from declarative view content.
 @MainActor
 @resultBuilder

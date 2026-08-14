@@ -10,7 +10,7 @@ import Glibc
 #if canImport(Darwin) || canImport(Glibc)
 struct TerminalPTYIntegrationTests {
   private let activation = Array(
-    "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1000h\u{1B}[?1006h\u{1B}[?1004h".utf8
+    "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1002h\u{1B}[?1006h\u{1B}[?1004h".utf8
   )
   private let deactivation = Array(
     ("\u{1B}[?1004l"
@@ -18,6 +18,8 @@ struct TerminalPTYIntegrationTests {
       + "\u{1B}[?1005l\u{1B}[?1006l\u{1B}[?1015l\u{1B}[?1016l"
       + "\u{1B}[?2004l\u{1B}[?25h\u{1B}[0m\u{1B}[?1049l").utf8
   )
+  private let titleSave = Array("\u{1B}[22;2t".utf8)
+  private let titleRestore = Array("\u{1B}[23;2t".utf8)
 
   @Test
   func `PTY session sets raw mode and restores every activation cycle`() throws {
@@ -78,6 +80,50 @@ struct TerminalPTYIntegrationTests {
     #expect(try pty.attributesSnapshot() == originalAttributes)
   }
 
+  @Test
+  func `PTY title override is reapplied after resume and restored on exit`() throws {
+    let pty = try PTYPair()
+    let title = Array("\u{1B}]2;PTY title\u{07}".utf8)
+    let clear = Array("\u{1B}]2;\u{07}".utf8)
+    let session = makeSession(pty: pty, terminalTitle: true)
+
+    let start = try pty.captureOutput(exactByteCount: activation.count) {
+      try session.start()
+    }
+    #expect(try start.result.get() == .started)
+    #expect(start.output == activation)
+
+    let setTitle = try pty.captureOutput(exactByteCount: titleSave.count + title.count) {
+      try session.setTitle("PTY title")
+    }
+    try setTitle.result.get()
+    #expect(setTitle.output == titleSave + title)
+
+    let suspend = try pty.captureOutput(exactByteCount: deactivation.count + titleRestore.count) {
+      try session.suspend()
+    }
+    #expect(try suspend.result.get() == .suspended)
+    #expect(suspend.output == deactivation + titleRestore)
+
+    let resume = try pty.captureOutput(exactByteCount: titleSave.count + activation.count + title.count) {
+      try session.resume()
+    }
+    #expect(try resume.result.get() == .resumed(requiresFullRepaint: true))
+    #expect(resume.output == activation + titleSave + title)
+
+    let clearTitle = try pty.captureOutput(exactByteCount: clear.count) {
+      try session.clearTitle()
+    }
+    try clearTitle.result.get()
+    #expect(clearTitle.output == clear)
+
+    let stop = try pty.captureOutput(exactByteCount: deactivation.count + titleRestore.count) {
+      try session.stop()
+    }
+    #expect(try stop.result.get() == .stopped)
+    #expect(stop.output == deactivation + titleRestore)
+  }
+
   @Test(.timeLimit(.minutes(1)))
   func `PTY async session restores modes after cancellation`() async throws {
     let pty = try PTYPair()
@@ -105,12 +151,15 @@ struct TerminalPTYIntegrationTests {
     #expect(try pty.attributesSnapshot() == originalAttributes)
   }
 
-  private func makeSession(pty: PTYPair) -> TerminalSession {
-    TerminalSession(
+  private func makeSession(pty: PTYPair, terminalTitle: Bool = false) -> TerminalSession {
+    var capabilities = TerminalCapabilities()
+    capabilities.supportsTerminalTitle = terminalTitle
+    return TerminalSession(
       transport: TerminalTransport(
         inputFileDescriptor: pty.slaveFileDescriptor,
         outputFileDescriptor: pty.slaveFileDescriptor
-      )
+      ),
+      capabilities: capabilities
     )
   }
 

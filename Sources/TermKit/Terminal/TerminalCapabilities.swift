@@ -399,6 +399,18 @@ public enum TerminalCapabilityDetector {
     }
     let hints = parsed?.hints ?? TerminfoHints()
     let isKitty = environment["KITTY_WINDOW_ID"] != nil || term.contains("kitty")
+    let termProgram = environment["TERM_PROGRAM"]?.lowercased() ?? ""
+    let isKnownOSC52Terminal = environment["GHOSTTY_RESOURCES_DIR"]?.isEmpty == false
+      || environment["KITTY_WINDOW_ID"]?.isEmpty == false
+      || environment["WT_SESSION"]?.isEmpty == false
+      || term.contains("ghostty")
+      || term.contains("kitty")
+      || ["alacritty", "foot", "foot-direct", "foot-extra", "rio", "wezterm"].contains(term)
+      || ["ghostty", "iterm.app", "iterm2", "kitty", "vscode", "wezterm"].contains(termProgram)
+    let isMultiplexer = environment["TMUX"] != nil || term.hasPrefix("screen")
+    let supportsOSC52 = isDumb == false && isMultiplexer == false && isKnownOSC52Terminal
+    let supportsTerminalTitle = isDumb == false && isMultiplexer == false
+      && (isKnownOSC52Terminal || term.hasPrefix("xterm") || term.hasPrefix("rxvt"))
     let capabilities = TerminalCapabilities(
       color: max(color, hints.color ?? color),
       synchronizedOutput: .unknown,
@@ -406,7 +418,9 @@ public enum TerminalCapabilityDetector {
       supportsSGRMouse: isDumb == false || hints.supportsSGRMouse,
       supportsFocusReporting: isDumb == false || hints.supportsFocusReporting,
       supportsKittyKeyboard: isKitty || hints.supportsKittyKeyboard,
-      allowsOSC52: allowsOSC52
+      allowsOSC52: allowsOSC52,
+      supportsOSC52: supportsOSC52,
+      supportsTerminalTitle: supportsTerminalTitle
     )
     return TerminalCapabilityDetection(
       capabilities: capabilities,

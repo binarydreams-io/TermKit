@@ -80,6 +80,31 @@ public struct TerminalKeyEvent: Equatable, Hashable, Sendable {
   public var modifiers: TerminalKeyModifiers
   /// The key action.
   public var action: TerminalKeyAction
+  /// The shifted key reported by the Kitty keyboard protocol.
+  public var shiftedKey: UnicodeScalar?
+  /// The key at the same position in the standard PC-101 layout.
+  public var baseLayoutKey: UnicodeScalar?
+
+  /// Text normalized to the standard PC-101 layout when possible.
+  ///
+  /// This property uses Kitty base-layout data first. It otherwise maps both cases of the full JCUKEN layout.
+  /// ASCII digits and punctuation pass through unchanged.
+  ///
+  /// - Complexity: O(n), where n is the number of Unicode scalars in the text.
+  public var normalizedText: String? {
+    guard case let .text(text) = key else { return nil }
+    if let baseLayoutKey {
+      return String(baseLayoutKey)
+    }
+    if modifiers.contains(.shift), let shiftedKey {
+      return String(shiftedKey)
+    }
+    var normalized = ""
+    for scalar in text.unicodeScalars {
+      normalized.unicodeScalars.append(Self.jcukenFallback[scalar] ?? scalar)
+    }
+    return normalized
+  }
 
   /// Creates a terminal key event.
   public init(
@@ -87,10 +112,35 @@ public struct TerminalKeyEvent: Equatable, Hashable, Sendable {
     modifiers: TerminalKeyModifiers = [],
     action: TerminalKeyAction = .press
   ) {
+    self.init(
+      key: key,
+      modifiers: modifiers,
+      action: action,
+      shiftedKey: nil,
+      baseLayoutKey: nil
+    )
+  }
+
+  /// Creates a terminal key event with Kitty alternate-key data.
+  public init(
+    key: TerminalKey,
+    modifiers: TerminalKeyModifiers = [],
+    action: TerminalKeyAction = .press,
+    shiftedKey: UnicodeScalar?,
+    baseLayoutKey: UnicodeScalar? = nil
+  ) {
     self.key = key
     self.modifiers = modifiers
     self.action = action
+    self.shiftedKey = shiftedKey
+    self.baseLayoutKey = baseLayoutKey
   }
+
+  private static let jcukenFallback: [UnicodeScalar: UnicodeScalar] = {
+    let cyrillic = "ёйцукенгшщзхъфывапролджэячсмитьбюЁЙЦУКЕНГШЩЗХЪФЫВАПРОЛДЖЭЯЧСМИТЬБЮ"
+    let pc101 = "`qwertyuiop[]asdfghjkl;'zxcvbnm,.~QWERTYUIOP{}ASDFGHJKL:\"ZXCVBNM<>"
+    return Dictionary(uniqueKeysWithValues: zip(cyrillic.unicodeScalars, pc101.unicodeScalars))
+  }()
 }
 
 /// A terminal mouse button.

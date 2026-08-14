@@ -23,6 +23,8 @@ public protocol RuntimeTerminalSession: AnyObject {
 
   /// Writes encoded frame bytes to the terminal.
   func present(_ bytes: [UInt8]) throws
+  /// Writes text to the terminal clipboard when capability and policy allow it.
+  func writeClipboard(_ text: String) throws
   /// Writes a terminal capability query.
   func writeCapabilityQuery(_ bytes: [UInt8]) throws
   /// Applies the result of a synchronized-output probe.
@@ -36,6 +38,12 @@ public protocol RuntimeTerminalSession: AnyObject {
 }
 
 extension RuntimeTerminalSession {
+  /// Writes an OSC 52 clipboard sequence when capability and policy allow it.
+  public func writeClipboard(_ text: String) throws {
+    guard capabilities.supportsOSC52, capabilities.allowsOSC52 else { return }
+    try present(OSC52Encoder.encode(text))
+  }
+
   /// Ignores a capability query by default.
   public func writeCapabilityQuery(_ bytes: [UInt8]) throws {}
 
@@ -190,6 +198,11 @@ public final class FramePresenter {
   /// Reads the current terminal size.
   public func readTerminalSize() throws -> TerminalSize {
     try session.readTerminalSize()
+  }
+
+  /// Writes text to the terminal clipboard when capability and policy allow it.
+  public func writeClipboard(_ text: String) throws {
+    try session.writeClipboard(text)
   }
 
   /// Presents a rendered surface to the terminal.

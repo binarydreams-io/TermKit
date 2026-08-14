@@ -3,6 +3,14 @@ import Testing
 
 struct CapabilityTests {
   @Test
+  func `Legacy explicit OSC 52 policy preserves clipboard support`() {
+    let capabilities = TerminalCapabilities(allowsOSC52: true)
+
+    #expect(capabilities.supportsOSC52)
+    #expect(capabilities.allowsOSC52)
+  }
+
+  @Test
   func `Environment hints stay bounded and do not prove synchronized output`() {
     let environment = TerminalEnvironment(
       values: [
@@ -22,7 +30,72 @@ struct CapabilityTests {
     #expect(capabilities.color == .trueColor)
     #expect(capabilities.supportsKittyKeyboard)
     #expect(capabilities.synchronizedOutput == .unknown)
+    #expect(capabilities.supportsOSC52)
     #expect(capabilities.allowsOSC52)
+    #expect(capabilities.supportsTerminalTitle)
+  }
+
+  @Test
+  func `OSC 52 support is conservative and independent from policy`() {
+    let unknown = TerminalCapabilityDetector.capabilities(
+      from: TerminalEnvironment(values: ["TERM": "xterm-256color"]),
+      allowsOSC52: true
+    )
+    let kitty = TerminalCapabilityDetector.capabilities(
+      from: TerminalEnvironment(values: ["KITTY_WINDOW_ID": "1", "TERM": "xterm-kitty"])
+    )
+    let multiplexedKitty = TerminalCapabilityDetector.capabilities(
+      from: TerminalEnvironment(
+        values: ["KITTY_WINDOW_ID": "1", "TERM": "xterm-kitty", "TMUX": "/tmp/tmux"]
+      )
+    )
+
+    #expect(unknown.supportsOSC52 == false)
+    #expect(unknown.allowsOSC52)
+    #expect(kitty.supportsOSC52)
+    #expect(kitty.allowsOSC52 == false)
+    #expect(multiplexedKitty.supportsOSC52 == false)
+  }
+
+  @Test
+  func `Multiplexers do not inherit direct terminal OSC or title support`() {
+    let screen = TerminalCapabilityDetector.capabilities(
+      from: TerminalEnvironment(
+        values: ["TERM": "screen-256color", "TERM_PROGRAM": "WezTerm"]
+      )
+    )
+
+    #expect(screen.supportsOSC52 == false)
+    #expect(screen.supportsTerminalTitle == false)
+  }
+
+  @Test(
+    arguments: [
+      ["GHOSTTY_RESOURCES_DIR": "/tmp/ghostty", "TERM": "xterm-ghostty"],
+      ["TERM_PROGRAM": "iTerm.app", "TERM": "xterm-256color"],
+      ["TERM_PROGRAM": "WezTerm", "TERM": "xterm-256color"],
+      ["WT_SESSION": "session", "TERM": "xterm-256color"]
+    ]
+  )
+  func `Known direct terminals support OSC 52`(values: [String: String]) {
+    let capabilities = TerminalCapabilityDetector.capabilities(
+      from: TerminalEnvironment(values: values)
+    )
+
+    #expect(capabilities.supportsOSC52)
+  }
+
+  @Test
+  func `Dumb terminals do not support terminal titles`() {
+    let dumb = TerminalCapabilityDetector.capabilities(
+      from: TerminalEnvironment(values: ["TERM": "dumb"])
+    )
+    let xterm = TerminalCapabilityDetector.capabilities(
+      from: TerminalEnvironment(values: ["TERM": "xterm-256color"])
+    )
+
+    #expect(dumb.supportsTerminalTitle == false)
+    #expect(xterm.supportsTerminalTitle)
   }
 
   @Test

@@ -23,9 +23,9 @@ struct SessionTests {
     #expect(raw.control & tcflag_t(CS8) != 0)
     #expect(script.writtenText.contains("\u{1B}[?1049h\u{1B}[?25l"))
     #expect(script.writtenText.contains("\u{1B}[?2004h"))
-    #expect(script.writtenText.contains("\u{1B}[?1000h\u{1B}[?1006h"))
+    #expect(script.writtenText.contains("\u{1B}[?1002h\u{1B}[?1006h"))
     #expect(script.writtenText.contains("\u{1B}[?1004h"))
-    #expect(script.writtenText.contains("\u{1B}[>1u"))
+    #expect(script.writtenText.contains("\u{1B}[>5u"))
 
     #expect(try session.stop() == .stopped)
     #expect(session.state == .inactive)
@@ -61,6 +61,70 @@ struct SessionTests {
 
     #expect(script.writtenText.contains("\u{1B}[?2026hframe\u{1B}[?2026l"))
     try session.stop()
+  }
+
+  @Test
+  func `Terminal title is sanitized and restored across lifecycle transitions`() throws {
+    let script = TerminalPOSIXScript()
+    var capabilities = TerminalCapabilities()
+    capabilities.supportsTerminalTitle = true
+    let session = TerminalSession(
+      transport: TerminalTransport(systemCalls: script.calls),
+      capabilities: capabilities
+    )
+
+    try session.start()
+    try session.setTitle("Term\u{1B}]2;bad\u{07}\nTitle\u{009C}")
+    try session.suspend()
+    try session.resume()
+    try session.clearTitle()
+    try session.stop()
+
+    #expect(script.writtenText.hasPrefix("\u{1B}[?1049h"))
+    #expect(script.writtenText.contains("\u{1B}[22;2t\u{1B}]2;Term]2;badTitle\u{07}"))
+    #expect(script.writtenText.contains("\u{1B}[23;2t\u{1B}[?1049h"))
+    #expect(script.writtenText.contains("\u{1B}[?1004h\u{1B}[22;2t\u{1B}]2;Term]2;badTitle\u{07}"))
+    #expect(script.writtenText.contains("\u{1B}]2;\u{07}"))
+    #expect(script.writtenText.hasSuffix("\u{1B}[?1049l\u{1B}[23;2t"))
+  }
+
+  @Test
+  func `Unsupported terminal title operations are no-ops`() throws {
+    let script = TerminalPOSIXScript()
+    let session = makeSession(script: script)
+
+    try session.setTitle("ignored")
+    try session.clearTitle()
+
+    #expect(session.state == .inactive)
+    #expect(script.writtenBytes.isEmpty)
+  }
+
+  @Test
+  func `Failed title resume restores and rebuilds the title stack`() throws {
+    let script = TerminalPOSIXScript(writeSteps: [
+      .all, .all, .all, .all, .all, .all,
+      .failure(EIO),
+      .all, .all, .all, .all, .all
+    ])
+    var capabilities = TerminalCapabilities()
+    capabilities.supportsTerminalTitle = true
+    let session = TerminalSession(
+      transport: TerminalTransport(systemCalls: script.calls),
+      capabilities: capabilities
+    )
+
+    try session.start()
+    try session.setTitle("App")
+    try session.suspend()
+    #expect(throws: TerminalSessionError.self) {
+      try session.resume()
+    }
+    #expect(try session.resume() == .resumed(requiresFullRepaint: true))
+    try session.stop()
+
+    #expect(script.writtenText.components(separatedBy: "\u{1B}[22;2t").count - 1 == 3)
+    #expect(script.writtenText.components(separatedBy: "\u{1B}[23;2t").count - 1 == 3)
   }
 
   @Test

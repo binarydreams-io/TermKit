@@ -54,15 +54,13 @@ while IFS= read -r path; do
     esac
 done <<< "$TUIKIT_PATHS"
 
-if command -v swift-format >/dev/null; then
-    swift-format lint --strict --recursive "$PROJECT_DIR/Sources" "$PROJECT_DIR/Tests" "$PROJECT_DIR/Examples/Sources" "$PROJECT_DIR/Examples/Tests"
-else
-    swift format lint --strict --recursive "$PROJECT_DIR/Sources" "$PROJECT_DIR/Tests" "$PROJECT_DIR/Examples/Sources" "$PROJECT_DIR/Examples/Tests"
-fi
+command -v swiftformat >/dev/null || { printf '%s\n' "Quality error: swiftformat is not installed" >&2; exit 1; }
 command -v swiftlint >/dev/null || { printf '%s\n' "Quality error: swiftlint is not installed" >&2; exit 1; }
 command -v actionlint >/dev/null || { printf '%s\n' "Quality error: actionlint is not installed" >&2; exit 1; }
+[[ "$(swiftformat --version)" == "$SWIFTFORMAT_VERSION" ]] || { printf '%s\n' "Quality error: SwiftFormat version mismatch" >&2; exit 1; }
 [[ "$(swiftlint version)" == "$SWIFTLINT_VERSION" ]] || { printf '%s\n' "Quality error: SwiftLint version mismatch" >&2; exit 1; }
 [[ "$(actionlint -version 2>&1 | sed -n '1p')" == "$ACTIONLINT_VERSION" ]] || { printf '%s\n' "Quality error: actionlint version mismatch" >&2; exit 1; }
+swiftformat "$PROJECT_DIR/Sources" "$PROJECT_DIR/Tests" "$PROJECT_DIR/Examples/Sources" "$PROJECT_DIR/Examples/Tests" --lint
 swiftlint lint --strict --no-cache --config "$PROJECT_DIR/.swiftlint.yml"
 actionlint "$PROJECT_DIR"/.github/workflows/*.yml
 

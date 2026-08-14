@@ -63,7 +63,7 @@ public struct Button: SemanticRenderable, ControlActivatable, View {
       NodeDescriptor(
         type: Self.self,
         primitive: self,
-        focus: FocusMetadata(isFocusable: isEnabled),
+        focus: FocusMetadata(id: FocusID(rawValue: id.rawValue), isFocusable: isEnabled),
         hitTest: HitTestMetadata(isEnabled: isEnabled),
         dirtyOnUpdate: .layout
       )

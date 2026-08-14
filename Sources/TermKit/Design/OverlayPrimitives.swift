@@ -1,6 +1,23 @@
 /// An overlay host exposed by the design layer.
 public typealias DesignOverlayHost<Content: Sendable> = OverlayHost<Content>
 
+extension OverlayHost where Content == AnyView {
+  /// Presents a toast and removes it when its timeline expires.
+  public func present(_ toast: Toast, zIndex: Int = 1000) {
+    let timeline = toast.timeline { [weak self] id in
+      self?.dismiss(id)
+    }
+    present(
+      OverlayPresentation(
+        id: toast.id,
+        content: AnyView(timeline),
+        kind: .toast,
+        zIndex: zIndex
+      )
+    )
+  }
+}
+
 /// A preferred terminal width for dialogs.
 public enum DialogWidth: Int, CaseIterable, Sendable, Hashable {
   /// A compact 60-column dialog.
@@ -48,7 +65,7 @@ extension DialogSurface: SemanticRenderable, View where Content == String {
       NodeDescriptor(
         type: Self.self,
         primitive: self,
-        focus: FocusMetadata(isFocusable: true),
+        focus: FocusMetadata(id: FocusID(rawValue: id.rawValue), isFocusable: true),
         hitTest: HitTestMetadata(disablesDescendants: false, isEnabled: true, zIndex: 100, modalScope: id.rawValue),
         dirtyOnUpdate: .layout
       )
@@ -379,8 +396,7 @@ extension Toast: SemanticRenderable, View {
     context: PaintContext,
     resources: inout ControlRenderResources
   ) throws -> SemanticNode {
-    let localFrame = frame(in: context.clip.size)
-    let toastFrame = localFrame.offsetBy(dx: context.origin.x, dy: context.origin.y)
+    let toastFrame = CellRect(origin: context.origin, size: context.frameSize)
     let panelStyle = CellStyle(foreground: .rgba(.white), background: .rgba(RGBA(redByte: 38, greenByte: 40, blueByte: 48)))
     let railColor =
       switch kind {

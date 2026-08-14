@@ -114,6 +114,68 @@ public struct HStack: View {
   }
 }
 
+struct SpacerLayoutValue: Sendable, Hashable {
+  let minimumLength: Int
+}
+
+/// Expands along the primary axis of its containing stack.
+public struct Spacer: View {
+  private let descriptor: NodeDescriptor
+
+  /// Creates a spacer with a minimum primary-axis length.
+  @MainActor
+  public init(minLength: Int = 0) {
+    precondition(minLength >= 0)
+    let value = SpacerLayoutValue(minimumLength: minLength)
+    let primitive = LayoutPrimitive.stack(StackLayout(axis: .horizontal))
+    self.descriptor = NodeDescriptor(
+      type: Self.self,
+      value: value,
+      primitive: primitive,
+      dirtyOnUpdate: .layout
+    )
+  }
+
+  /// The empty descriptor that participates only in layout.
+  @MainActor
+  public var graphBody: [NodeDescriptor] {
+    [descriptor]
+  }
+}
+
+/// Contains the proposed geometry supplied to a geometry reader.
+public struct GeometryReaderContext: Sendable, Hashable {
+  /// The size proposed by the parent layout.
+  public let proposedSize: ProposedCellSize
+
+  /// The proposed dimensions with unspecified values replaced by zero.
+  public var size: CellSize {
+    proposedSize.replacingUnspecifiedDimensions(by: .zero)
+  }
+}
+
+/// Builds content from the size proposed by the parent layout.
+public struct GeometryReader: View {
+  @Environment(ProposedCellSizeEnvironmentKey.self) private var proposedSize
+  private let content: @MainActor (_ context: GeometryReaderContext) -> [NodeDescriptor]
+
+  /// Creates a reader that rebuilds content when its proposed size changes.
+  @MainActor
+  public init(
+    @ViewBuilder content: @escaping @MainActor (_ context: GeometryReaderContext) -> [NodeDescriptor]
+  ) {
+    self.content = content
+  }
+
+  /// The content built for the current proposed size.
+  @MainActor
+  public var graphBody: [NodeDescriptor] {
+    buildViewGraph {
+      content(GeometryReaderContext(proposedSize: proposedSize))
+    }
+  }
+}
+
 extension View {
   /// Adds the specified insets around this view.
   public func padding(_ insets: EdgeInsets) -> some View {

@@ -32,3 +32,17 @@ The `run()` method requires an event source. The runtime owns raw mode, the alte
 The runtime probes synchronized output when its support is unknown. If the probe does not confirm support, presentation uses ordinary ANSI output.
 
 Pass `onInput` to the initializer for application commands. Call ``Runtime/stop()`` to restore the terminal and end the event loop.
+
+## Optional input and clipboard features
+
+Enable Kitty keyboard support in both the session and the input parser. ``TerminalKeyEvent/normalizedText`` uses a reported base-layout key when available.
+It falls back to the JCUKEN table and does not change text sent to focused controls.
+
+The capability detector reports OSC 52 support from conservative environment hints. This result does not grant clipboard access.
+Set the `allowsOSC52` argument only when the application permits clipboard writes.
+
+Pass ``TextSelectionConfiguration`` to opt in to grid-aware selection and copy on release.
+The runtime copies only when support and application policy are both enabled.
+
+Create a ``ViewOverlayHost`` and pass it to the declarative runtime initializer. Present dialogs or custom views through the host.
+Use ``OverlayHost/present(_:zIndex:)`` for a toast that expires on the runtime timeline.

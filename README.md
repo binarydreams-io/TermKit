@@ -6,7 +6,7 @@
 TermKit is a declarative Swift terminal UI library from [Binary Dreams, LLC](https://binarydreams.io).
 It uses a retained view graph, packed terminal cells, damage-limited output, and one shared frame scheduler.
 
-Version `2.1.0` supports Swift 6.3.3, macOS 14 or later, and glibc-based Linux systems.
+Version `2.2.0` supports Swift 6.3.3, macOS 14 or later, and glibc-based Linux systems.
 TermKit requires a UTF-8 terminal.
 
 ![TermKitPlayer full layout](.github/assets/termkit-player-full.png)
@@ -18,7 +18,7 @@ Add TermKit to your package:
 ```swift
 .package(
   url: "https://github.com/binarydreams-io/termkit",
-  from: "2.1.0"
+  from: "2.2.0"
 )
 ```
 

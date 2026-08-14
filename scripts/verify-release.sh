@@ -13,13 +13,15 @@ trap 'rm -rf "$TEMP_DIR"' EXIT HUP INT TERM
 
 FILE_VERSION="$(tr -d '[:space:]' < "$PROJECT_DIR/Sources/TermKit/VERSION")"
 [[ "$VERSION" == "$FILE_VERSION" ]] || { printf '%s\n' "Release error: VERSION does not match" >&2; exit 1; }
+HEAD_VERSION="$(git -C "$PROJECT_DIR" show HEAD:Sources/TermKit/VERSION | tr -d '[:space:]')"
+[[ "$VERSION" == "$HEAD_VERSION" ]] || { printf '%s\n' "Release error: VERSION in HEAD does not match" >&2; exit 1; }
 if [[ -n "${GITHUB_REF_NAME:-}" && "$GITHUB_REF_NAME" != "$VERSION" ]]; then
     printf '%s\n' "Release error: tag does not match VERSION" >&2
     exit 1
 fi
-grep -Eq "^## $VERSION - [0-9]{4}-[0-9]{2}-[0-9]{2}$" "$PROJECT_DIR/CHANGELOG.md"
-grep -Eq "^version: ['\"]?${VERSION}['\"]?$" "$PROJECT_DIR/CITATION.cff"
-grep -Fq "Version \`$VERSION\`" "$PROJECT_DIR/README.md"
+git -C "$PROJECT_DIR" show HEAD:CHANGELOG.md | grep -Eq "^## $VERSION - [0-9]{4}-[0-9]{2}-[0-9]{2}$"
+git -C "$PROJECT_DIR" show HEAD:CITATION.cff | grep -Eq "^version: ['\"]?${VERSION}['\"]?$"
+git -C "$PROJECT_DIR" show HEAD:README.md | grep -Fq "Version \`$VERSION\`"
 grep -Fq 'SWIFT_VERSION="6.3.3"' "$SCRIPT_DIR/toolchain.env"
 [[ "$(tr -d '[:space:]' < "$PROJECT_DIR/.swift-version")" == "6.3.3" ]]
 

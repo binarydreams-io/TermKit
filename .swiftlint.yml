@@ -15,15 +15,17 @@ excluded:
 
 # Rules
 disabled_rules:
+  # Swift Testing uses descriptive backtick identifiers.
+  - identifier_name
   # We use fatalError() intentionally in body properties for Renderable views
   - fatal_error_message
   # Nesting is acceptable for enums inside structs (e.g. Appearance.ID, GeneratedPalette.Hue)
   - nesting
   # BorderStyle.none follows SwiftUI convention (e.g. Font.Weight.none)
   - discouraged_none_name
-  # swift-format adds trailing commas (multiElementCollectionTrailingCommas: true)
+  # SwiftFormat adds trailing commas.
   - trailing_comma
-  # swift-format places opening braces on new lines for wrapped signatures
+  # SwiftFormat places opening braces on new lines for wrapped signatures.
   - opening_brace
   # Explicit type names are clearer in generic value APIs and public factories.
   - prefer_self_in_static_references
@@ -66,7 +68,6 @@ opt_in_rules:
   - joined_default_parameter
   - last_where
   - legacy_multiple
-  - modifier_order
   - operator_usage_whitespace
   - prefer_self_in_static_references
   - prefer_self_type_over_type_of_self

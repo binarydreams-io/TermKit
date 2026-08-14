@@ -169,4 +169,98 @@ struct PrimitivesTests {
     #expect(node.role == .status)
     #expect(surface[frame.origin].styleID != surface[frame.origin.offsetBy(dx: 1)].styleID)
   }
+
+  @Test
+  @MainActor
+  func `status pill resolves semantic tones and supports bare presentation`() throws {
+    let theme = try SemanticTheme.standard.resolve(scheme: .dark)
+    let pill = StatusPill(text: "Ready", tone: .success, theme: theme)
+    let bare = StatusPill(text: "Ready", tone: .success, theme: theme, presentation: .bare)
+    var resources = ControlRenderResources()
+    var pillSurface = Surface(size: CellSize(width: 7, height: 1))
+    var bareSurface = Surface(size: CellSize(width: 5, height: 1))
+
+    _ = try pill.paint(
+      into: &pillSurface,
+      context: PaintContext(clip: pillSurface.bounds),
+      resources: &resources
+    )
+    _ = try bare.paint(
+      into: &bareSurface,
+      context: PaintContext(clip: bareSurface.bounds),
+      resources: &resources
+    )
+
+    #expect(pill.sizeThatFits(.unspecified) == CellSize(width: 7, height: 1))
+    #expect(bare.sizeThatFits(.unspecified) == CellSize(width: 5, height: 1))
+    #expect(pill.style.background == .rgba(theme[.success]))
+    #expect(bare.style == CellStyle(foreground: .rgba(theme[.success])))
+    #expect(renderedText(in: pillSurface, resources: resources) == " Ready ")
+    #expect(renderedText(in: bareSurface, resources: resources) == "Ready")
+  }
+
+  @Test
+  @MainActor
+  func `status pill legacy initializer keeps padded rendering`() throws {
+    let style = CellStyle(foreground: .rgba(.white), background: .rgba(.black), attributes: .bold)
+    let pill = StatusPill(text: "Old", style: style, kind: .warning)
+    var resources = ControlRenderResources()
+    var surface = Surface(size: CellSize(width: 5, height: 1))
+
+    let node = try pill.paint(
+      into: &surface,
+      context: PaintContext(clip: surface.bounds),
+      resources: &resources
+    )
+
+    #expect(pill.presentation == .pill)
+    #expect(pill.sizeThatFits(.unspecified) == CellSize(width: 5, height: 1))
+    #expect(renderedText(in: surface, resources: resources) == " Old ")
+    #expect(resources.styles.value(for: surface[.zero].styleID) == style)
+    #expect(node.value == "warning")
+  }
+
+  @Test(arguments: [
+    (StatusKind.neutral, SemanticColorRole.secondary, ColorScheme.light),
+    (StatusKind.info, SemanticColorRole.info, ColorScheme.light),
+    (StatusKind.success, SemanticColorRole.success, ColorScheme.light),
+    (StatusKind.warning, SemanticColorRole.warning, ColorScheme.light),
+    (StatusKind.error, SemanticColorRole.error, ColorScheme.light),
+    (StatusKind.neutral, SemanticColorRole.secondary, ColorScheme.dark),
+    (StatusKind.info, SemanticColorRole.info, ColorScheme.dark),
+    (StatusKind.success, SemanticColorRole.success, ColorScheme.dark),
+    (StatusKind.warning, SemanticColorRole.warning, ColorScheme.dark),
+    (StatusKind.error, SemanticColorRole.error, ColorScheme.dark)
+  ])
+  func `status pill maps every tone to its semantic color`(
+    tone: StatusPillTone,
+    role: SemanticColorRole,
+    scheme: ColorScheme
+  ) throws {
+    let theme = try SemanticTheme.standard.resolve(scheme: scheme)
+    let pill = try StatusPill(text: "State", tone: tone, theme: SemanticTheme.standard, scheme: scheme)
+
+    #expect(pill.tone == tone)
+    #expect(pill.style.background == .rgba(theme[role]))
+  }
+
+  @Test
+  func `status pill updates theme style after tone and presentation changes`() throws {
+    let theme = try SemanticTheme.standard.resolve(scheme: .light)
+    var pill = StatusPill(text: "State", tone: .success, theme: theme)
+
+    pill.tone = .error
+    #expect(pill.style.background == .rgba(theme[.error]))
+
+    pill.presentation = .bare
+    #expect(pill.style == CellStyle(foreground: .rgba(theme[.error])))
+  }
+}
+
+private func renderedText(in surface: Surface, resources: ControlRenderResources) -> String {
+  (0 ..< surface.size.width).compactMap { x -> String? in
+    let cell = surface[CellPoint(x: x, y: 0)]
+    guard cell.isContinuation == false else { return nil }
+    return resources.graphemes.value(for: cell.graphemeID)
+  }.joined()
 }

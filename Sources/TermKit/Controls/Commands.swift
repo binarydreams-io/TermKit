@@ -113,7 +113,7 @@ extension TerminalKeyEvent {
   var keyboardShortcut: KeyboardShortcut? {
     let mappedKey: KeyboardKey? =
       switch key {
-      case let .text(text) where text.count == 1: text.first.map(KeyboardKey.character)
+      case .text where normalizedText?.count == 1: normalizedText?.first.map(KeyboardKey.character)
       case .enter: .enter
       case .escape: .escape
       case .tab: .tab

@@ -135,6 +135,9 @@ public final class Runtime {
       _ event: TerminalSignalEvent,
       _ action: TerminalSignalAction
     ) throws -> Void
+  /// Handles text when a mouse-drag selection ends.
+  public typealias SelectionEndHandler =
+    @MainActor (_ text: String) throws -> TextSelectionCopyAction
 
   /// The current runtime lifecycle state.
   public private(set) var state: RuntimeState = .inactive
@@ -160,6 +163,10 @@ public final class Runtime {
   public var onInputError: InputErrorHandler?
   /// The optional handler for terminal signals.
   public var onSignal: SignalHandler?
+  /// The configuration for selection over rendered text.
+  public var textSelectionConfiguration: TextSelectionConfiguration
+  /// The optional handler that observes completed text selections.
+  public var onSelectionEnd: SelectionEndHandler?
 
   private static let animationDemand: FrameDemandID = "runtime-view-animation"
   private static let timelineCadenceDemand: FrameDemandID = "runtime-view-timeline-cadence"
@@ -167,6 +174,7 @@ public final class Runtime {
 
   private let view: any RuntimeView
   private let declarativeInputDispatcher: (@MainActor (_ event: TerminalInputEvent) -> Void)?
+  private let overlayHost: ViewOverlayHost?
   private let presenter: FramePresenter
   private let timeSource: any TimeSource
   private let eventSource: (any RuntimeEventSource)?
@@ -181,10 +189,11 @@ public final class Runtime {
   private var isRendering = false
   private var isUpdatingFrameEnvironment = false
   private var isWaitingForEvent = false
+  private var textSelection = SurfaceTextSelection()
   private let missedBudgetCounter = DiagnosticsCounter()
 
   /// Creates a runtime for an imperative runtime view.
-  public init(
+  public convenience init(
     view: any RuntimeView,
     presenter: FramePresenter,
     terminalSize: CellSize,
@@ -202,9 +211,52 @@ public final class Runtime {
     onInputError: InputErrorHandler? = nil,
     onSignal: SignalHandler? = nil
   ) {
+    self.init(
+      view: view,
+      presenter: presenter,
+      terminalSize: terminalSize,
+      motionPolicy: motionPolicy,
+      timeSource: timeSource,
+      eventSource: eventSource,
+      processControl: processControl,
+      inputParser: inputParser,
+      terminalProbePolicy: terminalProbePolicy,
+      escapeResolutionInterval: escapeResolutionInterval,
+      scheduler: scheduler,
+      graph: graph,
+      commands: commands,
+      onInput: onInput,
+      onInputError: onInputError,
+      onSignal: onSignal,
+      textSelectionConfiguration: .disabled
+    )
+  }
+
+  /// Creates a runtime for an imperative runtime view with text selection.
+  public init(
+    view: any RuntimeView,
+    presenter: FramePresenter,
+    terminalSize: CellSize,
+    motionPolicy: MotionPolicy = .standard,
+    timeSource: any TimeSource = ContinuousTimeSource(),
+    eventSource: (any RuntimeEventSource)? = nil,
+    processControl: any RuntimeProcessControl = SystemRuntimeProcessControl(),
+    inputParser: TerminalInputParser = TerminalInputParser(),
+    terminalProbePolicy: TerminalProbePolicy = TerminalProbePolicy(),
+    escapeResolutionInterval: TimeSpan = .milliseconds(25),
+    scheduler: FrameScheduler = FrameScheduler(),
+    graph: ViewGraph = ViewGraph(),
+    commands: KeyboardCommandSet = KeyboardCommandSet(),
+    onInput: InputHandler? = nil,
+    onInputError: InputErrorHandler? = nil,
+    onSignal: SignalHandler? = nil,
+    textSelectionConfiguration: TextSelectionConfiguration,
+    onSelectionEnd: SelectionEndHandler? = nil
+  ) {
     precondition(escapeResolutionInterval > .zero, "The Escape-key resolution interval must be positive.")
     self.view = view
     self.declarativeInputDispatcher = nil
+    self.overlayHost = nil
     self.presenter = presenter
     self.terminalSize = terminalSize
     self.motionPolicy = motionPolicy
@@ -225,12 +277,14 @@ public final class Runtime {
     self.onInput = onInput
     self.onInputError = onInputError
     self.onSignal = onSignal
+    self.textSelectionConfiguration = textSelectionConfiguration
+    self.onSelectionEnd = onSelectionEnd
     self.pendingDamage = DamageTracker(bounds: CellRect(origin: .zero, size: terminalSize))
     installGraphInvalidationHandler()
   }
 
   /// Creates a runtime for a declarative root view.
-  public init(
+  public convenience init(
     view root: some View,
     presenter: FramePresenter,
     terminalSize: CellSize,
@@ -248,10 +302,54 @@ public final class Runtime {
     onInputError: InputErrorHandler? = nil,
     onSignal: SignalHandler? = nil
   ) {
+    self.init(
+      view: root,
+      presenter: presenter,
+      terminalSize: terminalSize,
+      motionPolicy: motionPolicy,
+      timeSource: timeSource,
+      eventSource: eventSource,
+      processControl: processControl,
+      inputParser: inputParser,
+      terminalProbePolicy: terminalProbePolicy,
+      escapeResolutionInterval: escapeResolutionInterval,
+      scheduler: scheduler,
+      graph: graph,
+      commands: commands,
+      onInput: onInput,
+      onInputError: onInputError,
+      onSignal: onSignal,
+      textSelectionConfiguration: .disabled
+    )
+  }
+
+  /// Creates a runtime for a declarative root view with overlays or text selection.
+  public init(
+    view root: some View,
+    presenter: FramePresenter,
+    terminalSize: CellSize,
+    motionPolicy: MotionPolicy = .standard,
+    timeSource: any TimeSource = ContinuousTimeSource(),
+    eventSource: (any RuntimeEventSource)? = nil,
+    processControl: any RuntimeProcessControl = SystemRuntimeProcessControl(),
+    inputParser: TerminalInputParser = TerminalInputParser(),
+    terminalProbePolicy: TerminalProbePolicy = TerminalProbePolicy(),
+    escapeResolutionInterval: TimeSpan = .milliseconds(25),
+    scheduler: FrameScheduler = FrameScheduler(),
+    graph: ViewGraph = ViewGraph(),
+    commands: KeyboardCommandSet = KeyboardCommandSet(),
+    onInput: InputHandler? = nil,
+    onInputError: InputErrorHandler? = nil,
+    onSignal: SignalHandler? = nil,
+    overlayHost: ViewOverlayHost? = nil,
+    textSelectionConfiguration: TextSelectionConfiguration = .disabled,
+    onSelectionEnd: SelectionEndHandler? = nil
+  ) {
     precondition(escapeResolutionInterval > .zero, "The Escape-key resolution interval must be positive.")
-    let declarativeView = DeclarativeRuntimeView(root: root)
+    let declarativeView = DeclarativeRuntimeView(root: root, overlayHost: overlayHost)
     self.view = declarativeView
     self.declarativeInputDispatcher = { [weak declarativeView] event in declarativeView?.dispatch(event) }
+    self.overlayHost = overlayHost
     self.presenter = presenter
     self.terminalSize = terminalSize
     self.motionPolicy = motionPolicy
@@ -272,8 +370,13 @@ public final class Runtime {
     self.onInput = onInput
     self.onInputError = onInputError
     self.onSignal = onSignal
+    self.textSelectionConfiguration = textSelectionConfiguration
+    self.onSelectionEnd = onSelectionEnd
     self.pendingDamage = DamageTracker(bounds: CellRect(origin: .zero, size: terminalSize))
     installGraphInvalidationHandler()
+    overlayHost?.invalidationHandler = { [weak self] in
+      self?.invalidate(.all)
+    }
   }
 
   /// The next scheduled frame deadline at the current time.
@@ -318,6 +421,8 @@ public final class Runtime {
       try presenter.stopSession()
     }
     state = .stopped
+    graph.runRuntimeShutdownActions()
+    scheduler.removeAllDemands()
     wakeEventLoop()
   }
 
@@ -364,12 +469,17 @@ public final class Runtime {
       invalidate(invalidation, transaction: transaction ?? Transaction.current)
     case let .input(event):
       guard state == .running else { return }
-      let handledCommand: Bool = if case let .key(key) = event, key.action != .release, let shortcut = key.keyboardShortcut {
+      let handledSelection = try processTextSelection(event)
+      let handledCommand: Bool = if handledSelection == false,
+                                    case let .key(key) = event,
+                                    key.action != .release,
+                                    let shortcut = key.keyboardShortcut
+      {
         commands.dispatch(shortcut) != nil
       } else {
         false
       }
-      if handledCommand == false {
+      if handledSelection == false, handledCommand == false {
         declarativeInputDispatcher?(event)
       }
       try onInput?(event)
@@ -378,6 +488,7 @@ public final class Runtime {
       guard state == .running || state == .suspended else { return }
       guard size != terminalSize else { return }
       terminalSize = size
+      textSelection.clear()
       pendingDamage = DamageTracker(bounds: CellRect(origin: .zero, size: size))
       presenter.invalidateTerminalState()
       graph.root?.invalidate(.layout)
@@ -394,6 +505,7 @@ public final class Runtime {
       case .terminate:
         scheduler.removeAllDemands()
         state = .stopped
+        graph.runRuntimeShutdownActions()
       case .suspendProcess:
         scheduler.removeAllDemands()
         state = .suspended
@@ -482,6 +594,11 @@ public final class Runtime {
         invalidatesDependents: true
       )
       graph.setEnvironment(
+        ProposedCellSize(width: terminalSize.width, height: terminalSize.height),
+        for: ProposedCellSizeEnvironmentKey.self,
+        invalidatesDependents: true
+      )
+      graph.setEnvironment(
         TimelineFrameEnvironment(instant: tick.instant),
         for: TimelineFrameEnvironmentKey.self,
         invalidatesDependents: true
@@ -527,6 +644,11 @@ public final class Runtime {
       invalidatesDependents: false
     )
     graph.setEnvironment(
+      ProposedCellSize(width: terminalSize.width, height: terminalSize.height),
+      for: ProposedCellSizeEnvironmentKey.self,
+      invalidatesDependents: false
+    )
+    graph.setEnvironment(
       transaction.areAnimationsEnabled,
       for: AnimationsEnabledEnvironmentKey.self,
       invalidatesDependents: false
@@ -550,9 +672,10 @@ public final class Runtime {
       frameCompletionActions.append(contentsOf: sampling.completionActions)
       try view.layout(in: context, graph: graph)
       let layoutEnd = timeSource.now
-      let frame = try presenter.withRenderResources { resources in
+      var frame = try presenter.withRenderResources { resources in
         try view.paint(in: context, resources: &resources)
       }
+      try applyTextSelection(to: &frame.surface)
       let paintEnd = timeSource.now
       guard frame.surface.size == terminalSize else {
         throw RuntimeError.invalidSurfaceSize(expected: terminalSize, actual: frame.surface.size)
@@ -567,11 +690,11 @@ public final class Runtime {
         damage: damage
       )
       graph.clearDirtyFlags(includingPresentation: true)
+      pendingStructureInvalidation = false
       let commitCompletionActions = try withTransaction(transaction) {
         try graph.finishCommitDeferringCompletions(commit)
       }
       graphCommit = nil
-      pendingStructureInvalidation = false
       frameCompletionActions.append(contentsOf: commitCompletionActions)
       for action in frameCompletionActions {
         action()
@@ -686,9 +809,10 @@ public final class Runtime {
       let needsLayout = graphFrame.dirtyNodes.contains { $0.dirtyFlags.contains(.layout) }
       try incrementalView.updatePresentation(in: context, graph: graph, layout: needsLayout)
       let layoutEnd = timeSource.now
-      let frame = try presenter.withRenderResources { resources in
+      var frame = try presenter.withRenderResources { resources in
         try incrementalView.paint(in: context, resources: &resources)
       }
+      try applyTextSelection(to: &frame.surface)
       let paintEnd = timeSource.now
       guard frame.surface.size == terminalSize else {
         throw RuntimeError.invalidSurfaceSize(expected: terminalSize, actual: frame.surface.size)
@@ -743,6 +867,58 @@ public final class Runtime {
     }
     paintDamage.add(contentsOf: frameDamage.rectangles)
     return paintDamage
+  }
+
+  private func processTextSelection(_ event: TerminalInputEvent) throws -> Bool {
+    guard textSelectionConfiguration.isEnabled else {
+      textSelection.clear()
+      return false
+    }
+    if case let .key(key) = event,
+       key.action != .release,
+       key.key == .escape,
+       textSelection.isEmpty == false
+    {
+      textSelection.clear()
+      return true
+    }
+    guard case let .mouse(mouse) = event else { return false }
+    let point = CellPoint(x: mouse.position.column, y: mouse.position.row)
+    let bounds = CellRect(origin: .zero, size: terminalSize)
+    switch mouse.action {
+    case .press(.left):
+      textSelection.begin(at: point, in: bounds)
+      return false
+    case .drag(.left):
+      textSelection.update(to: point, in: bounds)
+      return textSelection.didDrag
+    case .release(.some(.left)), .release(.none):
+      guard textSelection.finish(at: point, in: bounds) else {
+        textSelection.clear()
+        return false
+      }
+      let text = presenter.frontSurface.map {
+        textSelection.text(in: $0, graphemes: presenter.resources.graphemes)
+      } ?? ""
+      let action = try onSelectionEnd?(text) ?? .automatic
+      if action == .automatic, textSelectionConfiguration.copiesOnRelease {
+        try presenter.writeClipboard(text)
+      }
+      return true
+    default:
+      return false
+    }
+  }
+
+  private func applyTextSelection(to surface: inout Surface) throws {
+    guard textSelectionConfiguration.isEnabled, textSelection.isEmpty == false else { return }
+    try presenter.withRenderResources { resources in
+      try textSelection.applyStyle(
+        textSelectionConfiguration.style,
+        to: &surface,
+        styles: &resources.styles
+      )
+    }
   }
 
   private func updateAnimationDemand(
@@ -929,6 +1105,7 @@ public final class Runtime {
       if presenter.sessionState != .inactive {
         try presenter.stopSession()
       }
+      graph.runRuntimeShutdownActions()
     } catch {
       throw RuntimeError.cleanupAfterFailure(
         primaryError: String(describing: primaryError),
