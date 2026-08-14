@@ -1,6 +1,7 @@
 /// Selects the clipboard action after a text-selection drag ends.
 public enum TextSelectionCopyAction: Sendable, Hashable {
-  /// Uses the runtime copy-on-release setting.
+  /// Uses the runtime copy-on-release setting. A completed copy clears
+  /// the selection.
   case automatic
   /// Keeps the selection without writing to the clipboard.
   case suppress
@@ -77,6 +78,9 @@ struct SurfaceTextSelection: Sendable, Hashable {
     guard isDragging else { return false }
     update(to: point, in: bounds)
     isDragging = false
+    // A pointer that wandered off the anchor cell and returned selects
+    // nothing beyond that cell, so the release reads as a click.
+    didDrag = didDrag && head != anchor
     return didDrag
   }
 

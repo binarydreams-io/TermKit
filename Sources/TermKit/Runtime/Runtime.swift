@@ -903,6 +903,9 @@ public final class Runtime {
       let action = try onSelectionEnd?(text) ?? .automatic
       if action == .automatic, textSelectionConfiguration.copiesOnRelease {
         try presenter.writeClipboard(text)
+        // The copy completes the gesture, so the highlight releases with
+        // it; `.suppress` keeps the selection on screen instead.
+        textSelection.clear()
       }
       return true
     default:

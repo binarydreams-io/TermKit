@@ -78,6 +78,70 @@ struct TextSelectionRuntimeTests {
   }
 
   @Test
+  func `Automatic copy clears the selection on release`() throws {
+    let session = FakeTerminalSession()
+    session.capabilities.supportsOSC52 = true
+    session.capabilities.allowsOSC52 = true
+    let presenter = FramePresenter(session: session)
+    let runtime = Runtime(
+      view: Text("select"),
+      presenter: presenter,
+      terminalSize: CellSize(width: 6, height: 1),
+      timeSource: DeterministicTimeSource(),
+      textSelectionConfiguration: TextSelectionConfiguration()
+    )
+    try runtime.start()
+    _ = try runtime.renderIfDue(at: .zero)
+    let payloadCount = session.presentedPayloads.count
+
+    try runtime.process(.input(mouse(.press(.left), x: 0, y: 0)))
+    try runtime.process(.input(mouse(.drag(.left), x: 2, y: 0)))
+    _ = try runtime.renderIfDue(at: .zero.advanced(by: FrameScheduler.minimumFrameInterval))
+    try runtime.process(.input(mouse(.release(.left), x: 2, y: 0)))
+    let clipboard = try OSC52Encoder.encode("sel")
+    #expect(session.presentedPayloads.dropFirst(payloadCount).filter { $0 == clipboard }.count == 1)
+
+    _ = try runtime.renderIfDue(
+      at: .zero.advanced(by: FrameScheduler.minimumFrameInterval + FrameScheduler.minimumFrameInterval)
+    )
+    let surface = try #require(presenter.frontSurface)
+    #expect(presenter.resources.styles.value(for: surface[.zero].styleID)?.attributes.contains(.inverse) == false)
+  }
+
+  @Test
+  func `A wandering drag that returns to its anchor stays a click`() throws {
+    let session = FakeTerminalSession()
+    session.capabilities.supportsOSC52 = true
+    session.capabilities.allowsOSC52 = true
+    var selectionEnded = false
+    let presenter = FramePresenter(session: session)
+    let runtime = Runtime(
+      view: Text("select"),
+      presenter: presenter,
+      terminalSize: CellSize(width: 6, height: 1),
+      timeSource: DeterministicTimeSource(),
+      textSelectionConfiguration: TextSelectionConfiguration(),
+      onSelectionEnd: { _ in
+        selectionEnded = true
+        return .automatic
+      }
+    )
+    try runtime.start()
+    _ = try runtime.renderIfDue(at: .zero)
+    let payloadCount = session.presentedPayloads.count
+
+    try runtime.process(.input(mouse(.press(.left), x: 1, y: 0)))
+    try runtime.process(.input(mouse(.drag(.left), x: 2, y: 0)))
+    try runtime.process(.input(mouse(.release(.left), x: 1, y: 0)))
+
+    #expect(selectionEnded == false)
+    #expect(session.presentedPayloads.count == payloadCount)
+    _ = try runtime.renderIfDue(at: .zero.advanced(by: FrameScheduler.minimumFrameInterval))
+    let surface = try #require(presenter.frontSurface)
+    #expect(presenter.resources.styles.value(for: surface[.zero].styleID)?.attributes.contains(.inverse) == false)
+  }
+
+  @Test
   func `Clipboard-less terminal does not copy and Escape clears selection`() throws {
     let session = FakeTerminalSession()
     session.capabilities.allowsOSC52 = true

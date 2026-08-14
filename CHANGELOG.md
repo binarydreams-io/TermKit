@@ -2,6 +2,13 @@
 
 All notable changes appear in this file.
 
+## 2.2.1 - 2026-08-14
+
+### Fixed
+
+- A text-selection drag that returns to its anchor cell reads as a click: the release passes to the pointer dispatchers instead of ending a one-cell selection.
+- The automatic copy-on-release clears the selection highlight after the clipboard write. The `.suppress` action still keeps the selection on screen.
+
 ## 2.2.0 - 2026-08-14
 
 ### Added
