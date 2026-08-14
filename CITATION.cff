@@ -2,7 +2,7 @@ cff-version: 1.2.0
 message: "If you use TermKit in research or published software, cite this repository."
 title: "TermKit"
 type: software
-version: 2.2.2
+version: 2.2.3
 date-released: 2026-08-14
 license: MIT
 repository-code: "https://github.com/binarydreams-io/termkit"

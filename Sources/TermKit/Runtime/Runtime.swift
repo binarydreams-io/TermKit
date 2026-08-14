@@ -59,6 +59,22 @@ public enum RuntimeInvalidation: Sendable, Hashable {
   case region(CellRect)
 }
 
+/// Selects how the runtime invalidates after an input event.
+public enum RuntimeInputInvalidation: Sendable, Hashable {
+  /// Invalidates the complete frame after every input event, so a handler
+  /// that mutates state outside observation still repaints. The default,
+  /// and the only 2.2 behavior.
+  case full
+  /// Requests a frame without damage and relies on the invalidations the
+  /// input handlers raise through observation. The runtime still
+  /// invalidates the complete frame for the events it consumes itself —
+  /// the text selection — because that state lives outside the view
+  /// graph. Suits an application whose input handlers mutate observable
+  /// models only: a held key then repaints the cells it changed instead
+  /// of the whole frame.
+  case stateDriven
+}
+
 /// Describes an event that changes runtime state or content.
 public enum RuntimeEvent: Sendable {
   /// Requests a frame invalidation with an optional transaction.
@@ -165,6 +181,9 @@ public final class Runtime {
   public var onSignal: SignalHandler?
   /// The configuration for selection over rendered text.
   public var textSelectionConfiguration: TextSelectionConfiguration
+
+  /// How the runtime invalidates after an input event.
+  private let inputInvalidation: RuntimeInputInvalidation
   /// The optional handler that observes completed text selections.
   public var onSelectionEnd: SelectionEndHandler?
 
@@ -251,7 +270,8 @@ public final class Runtime {
     onInputError: InputErrorHandler? = nil,
     onSignal: SignalHandler? = nil,
     textSelectionConfiguration: TextSelectionConfiguration,
-    onSelectionEnd: SelectionEndHandler? = nil
+    onSelectionEnd: SelectionEndHandler? = nil,
+    inputInvalidation: RuntimeInputInvalidation = .full
   ) {
     precondition(escapeResolutionInterval > .zero, "The Escape-key resolution interval must be positive.")
     self.view = view
@@ -279,6 +299,7 @@ public final class Runtime {
     self.onSignal = onSignal
     self.textSelectionConfiguration = textSelectionConfiguration
     self.onSelectionEnd = onSelectionEnd
+    self.inputInvalidation = inputInvalidation
     self.pendingDamage = DamageTracker(bounds: CellRect(origin: .zero, size: terminalSize))
     installGraphInvalidationHandler()
   }
@@ -300,7 +321,8 @@ public final class Runtime {
     commands: KeyboardCommandSet = KeyboardCommandSet(),
     onInput: InputHandler? = nil,
     onInputError: InputErrorHandler? = nil,
-    onSignal: SignalHandler? = nil
+    onSignal: SignalHandler? = nil,
+    inputInvalidation: RuntimeInputInvalidation = .full
   ) {
     self.init(
       view: root,
@@ -319,7 +341,8 @@ public final class Runtime {
       onInput: onInput,
       onInputError: onInputError,
       onSignal: onSignal,
-      textSelectionConfiguration: .disabled
+      textSelectionConfiguration: .disabled,
+      inputInvalidation: inputInvalidation
     )
   }
 
@@ -343,7 +366,8 @@ public final class Runtime {
     onSignal: SignalHandler? = nil,
     overlayHost: ViewOverlayHost? = nil,
     textSelectionConfiguration: TextSelectionConfiguration = .disabled,
-    onSelectionEnd: SelectionEndHandler? = nil
+    onSelectionEnd: SelectionEndHandler? = nil,
+    inputInvalidation: RuntimeInputInvalidation = .full
   ) {
     precondition(escapeResolutionInterval > .zero, "The Escape-key resolution interval must be positive.")
     let declarativeView = DeclarativeRuntimeView(root: root, overlayHost: overlayHost)
@@ -372,6 +396,7 @@ public final class Runtime {
     self.onSignal = onSignal
     self.textSelectionConfiguration = textSelectionConfiguration
     self.onSelectionEnd = onSelectionEnd
+    self.inputInvalidation = inputInvalidation
     self.pendingDamage = DamageTracker(bounds: CellRect(origin: .zero, size: terminalSize))
     installGraphInvalidationHandler()
     overlayHost?.invalidationHandler = { [weak self] in
@@ -483,7 +508,17 @@ public final class Runtime {
         declarativeInputDispatcher?(event)
       }
       try onInput?(event)
-      invalidate(.all)
+      switch inputInvalidation {
+      case .full:
+        invalidate(.all)
+      case .stateDriven:
+        if handledSelection {
+          invalidate(.all)
+        } else {
+          scheduler.requestFrame()
+          wakeEventLoop()
+        }
+      }
     case let .resize(size):
       guard state == .running || state == .suspended else { return }
       guard size != terminalSize else { return }

@@ -2,6 +2,12 @@
 
 All notable changes appear in this file.
 
+## 2.2.3 - 2026-08-14
+
+### Added
+
+- `RuntimeInputInvalidation`: the runtime can request a frame after input instead of invalidating the complete frame. The `.stateDriven` policy suits an application whose input handlers mutate observable models only — a held key then repaints the cells it changed. The default `.full` keeps the 2.2 behavior, and the text selection still invalidates the complete frame.
+
 ## 2.2.2 - 2026-08-14
 
 ### Fixed

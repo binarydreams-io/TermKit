@@ -14,7 +14,7 @@ struct TermKitIntegrationTests {
     #expect(view.graphBody.count == 1)
     #expect(view.graphBody.first?.identity == descriptor.identity)
     #expect(animation.duration == .milliseconds(150))
-    #expect(TermKitRelease.version == "2.2.2")
+    #expect(TermKitRelease.version == "2.2.3")
   }
 
   @Test
