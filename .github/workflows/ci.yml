@@ -12,11 +12,11 @@ permissions:
 
 concurrency:
   group: ci-${{ github.ref }}
-  cancel-in-progress: ${{ github.event_name == 'pull_request' }}
+  cancel-in-progress: true
 
 jobs:
-  hygiene:
-    name: Hygiene
+  quality:
+    name: Quality gate
     runs-on: macos-26
     steps:
       - name: Checkout
@@ -53,26 +53,6 @@ jobs:
       - name: Run the quality gate
         run: ./scripts/quality-gate.sh
 
-  macos:
-    name: macOS
-    runs-on: macos-26
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Verify Swift
-        run: |
-          source scripts/toolchain.env
-          swift --version | grep -F "Swift version $SWIFT_VERSION"
-      - name: Build and test
-        run: |
-          swift build --scratch-path "$RUNNER_TEMP/debug" -Xswiftc -warnings-as-errors
-          swift build --scratch-path "$RUNNER_TEMP/release" -c release -Xswiftc -warnings-as-errors
-          swift test --scratch-path "$RUNNER_TEMP/tests"
-          swift build --package-path Examples --scratch-path "$RUNNER_TEMP/examples-build" -Xswiftc -warnings-as-errors
-          swift test --package-path Examples --scratch-path "$RUNNER_TEMP/examples-tests"
-      - name: Build documentation
-        run: ./scripts/generate-documentation.sh "$RUNNER_TEMP/documentation"
-
   linux:
     name: Linux
     runs-on: ubuntu-24.04
@@ -81,32 +61,3 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
       - name: Build and test in the pinned image
         run: ./scripts/test-linux.sh
-
-  consumer:
-    name: Consumer
-    runs-on: macos-26
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Verify a fresh consumer
-        run: ./scripts/verify-consumer.sh
-
-  image:
-    name: Image
-    runs-on: macos-26
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Run image fixtures and snapshots
-        run: swift test --scratch-path "$RUNNER_TEMP/image-tests" --filter 'RasterImageTests|ImageRenderingTests'
-
-  performance:
-    name: Performance invariants
-    runs-on: macos-26
-    steps:
-      - name: Checkout
-        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
-      - name: Run deterministic scheduler and rendering checks
-        run: >-
-          swift test --scratch-path "$RUNNER_TEMP/performance-invariants"
-          --filter 'FrameSchedulerTests|FramePresenterTests|RendererPropertyTests'

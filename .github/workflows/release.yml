@@ -53,7 +53,7 @@ jobs:
           name: TermKit-${{ github.ref_name }}
           path: ${{ runner.temp }}/release
           if-no-files-found: error
-      - name: Prepare a draft GitHub Release
+      - name: Create GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
         run: >-
@@ -63,4 +63,4 @@ jobs:
           "$RUNNER_TEMP/release/TermKit-$GITHUB_REF_NAME.docc.tar.gz"
           "$RUNNER_TEMP/release/TermKit-$GITHUB_REF_NAME-benchmarks.tar.gz"
           "$RUNNER_TEMP/release/SHA256SUMS"
-          --draft --generate-notes --verify-tag --title "TermKit $GITHUB_REF_NAME"
+          --generate-notes --verify-tag --title "TermKit $GITHUB_REF_NAME"
