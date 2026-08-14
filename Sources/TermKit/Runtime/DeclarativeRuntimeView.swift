@@ -1125,6 +1125,14 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
       if let match = presentedHitTest(point, in: child, requiredModalScope: requiredModalScope) {
         return match
       }
+      // A presented overlay occludes the cells it paints: a point inside
+      // one that matched nothing must not fall through to the content
+      // beneath the overlay.
+      if child.primitive(as: RuntimeOverlayItemPrimitive.self) != nil,
+         child.paintBounds.contains(point)
+      {
+        return nil
+      }
     }
     guard node.acceptsHitTesting else { return nil }
     return requiredModalScope == nil || node.activeModalScope == requiredModalScope ? node : nil

@@ -2,6 +2,13 @@
 
 All notable changes appear in this file.
 
+## 2.2.2 - 2026-08-14
+
+### Fixed
+
+- A presented overlay occludes the cells it paints: a click over an overlay no longer falls through to the content beneath it. A modal overlay still blocks every click outside its own bounds.
+- The bundled version integration test now follows the release version, and the release verification checks it.
+
 ## 2.2.1 - 2026-08-14
 
 ### Fixed

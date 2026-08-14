@@ -22,6 +22,8 @@ fi
 git -C "$PROJECT_DIR" show HEAD:CHANGELOG.md | grep -Eq "^## $VERSION - [0-9]{4}-[0-9]{2}-[0-9]{2}$"
 git -C "$PROJECT_DIR" show HEAD:CITATION.cff | grep -Eq "^version: ['\"]?${VERSION}['\"]?$"
 git -C "$PROJECT_DIR" show HEAD:README.md | grep -Fq "Version \`$VERSION\`"
+git -C "$PROJECT_DIR" show HEAD:Tests/TermKitTests/Integration/TermKitIntegrationTests.swift \
+    | grep -Fq "TermKitRelease.version == \"$VERSION\""
 grep -Fq 'SWIFT_VERSION="6.3.3"' "$SCRIPT_DIR/toolchain.env"
 [[ "$(tr -d '[:space:]' < "$PROJECT_DIR/.swift-version")" == "6.3.3" ]]
 
