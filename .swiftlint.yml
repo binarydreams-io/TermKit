@@ -1,40 +1,17 @@
-# SwiftLint configuration for SwiftTUI release sources.
+# SwiftLint configuration for TermKit release sources.
 
 # Only lint project sources (not build artifacts or dependencies)
 included:
-  - Sources/TUIFoundation
-  - Sources/TUITerminal
-  - Sources/TUIRenderer
-  - Sources/TUIViewGraph
-  - Sources/TUILayout
-  - Sources/TUIAnimation
-  - Sources/TUIControls
-  - Sources/TUIDesign
-  - Sources/TUIRichText
-  - Sources/TUIAgentUI
-  - Sources/TUIRuntime
-  - Sources/SwiftTUI
-  - Sources/SwiftTUIShowcase
-  - Tests/TUIFoundationTests
-  - Tests/TUITerminalTests
-  - Tests/TUIRendererTests
-  - Tests/TUIViewGraphTests
-  - Tests/TUILayoutTests
-  - Tests/TUIAnimationTests
-  - Tests/TUIControlsTests
-  - Tests/TUIDesignTests
-  - Tests/TUIRichTextTests
-  - Tests/TUIAgentUITests
-  - Tests/TUIRuntimeTests
-  - Tests/SwiftTUIIntegrationTests
-  - Tests/TUIPerformanceTests
-  - Tools/APICompatibility/Sources
-  - Tools/APICompatibility/Tests
+  - Sources/TermKit
+  - Tests/TermKitTests
+  - Examples/Sources
+  - Examples/Tests
 
 excluded:
   - .build
   - .swiftpm
-  - Tools/APICompatibility/.build
+  - Examples/.build
+  - CompileFixtures
 
 # Rules
 disabled_rules:
@@ -105,8 +82,8 @@ opt_in_rules:
 
 # Rule Configuration
 line_length:
-  warning: 160
-  error: 200
+  warning: 140
+  error: 160
   ignores_urls: true
   ignores_comments: true
 

@@ -1,44 +1,22 @@
 .DS_Store
-/.build
-/Tools/APICompatibility/.build/
-/Tools/APICompatibility/.swiftpm/
-/Packages
+/.build/
+/Examples/.build/
+/.swiftpm/
 xcuserdata/
 DerivedData/
-.swiftpm/configuration/registries.json
-.swiftpm/xcode/package.xcworkspace/contents.xcworkspacedata
 .netrc
 
-# DocC generated output
-/docs-output/
 /docc-output/
+/docs-output/
+/benchmark-output/
+/release-output/
 
-# Docs site (Astro)
-docs/node_modules/
-docs/.astro/
-docs/dist/
-docs/.env.local
-docs/project-stats.json
-
-# Claude Code
 img/
 logo-prompt.md
 session-*.md
 *.backup
-
-# AI tooling / local caches (per-developer)
-.claude/*
-!.claude/plans/
-!.claude/CLAUDE.md
-!.claude/openspec/
 .cursor/
 .serena/
 .vscode/
 .windsurfrules
 AGENTS.md
-WHATS-NEXT.md
-
-# Local tooling
-papers/
-.gource/
-.remember

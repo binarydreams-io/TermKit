@@ -1,0 +1,17 @@
+--binarygrouping none
+--commas inline
+--decimalgrouping 3,8
+--hexgrouping none
+--ifdef no-indent
+--indent 2
+--octalgrouping none
+--self init-only
+--semicolons never
+--stripunusedargs closure-only
+--wraparguments before-first
+--wrapcollections before-first
+--wrapparameters before-first
+--disable redundantPublic,environmentEntry,redundantEquatable
+# Keep access control on declarations, not the extension: SwiftData @Model
+# needs its synthesized members declared public to satisfy PersistentModel.
+--extensionacl on-declarations

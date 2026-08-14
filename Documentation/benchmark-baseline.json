@@ -1,0 +1,64 @@
+{
+  "configuration": "release",
+  "date": "2026-08-14",
+  "environment": {
+    "TERMKIT_RUN_PERFORMANCE_TESTS": "1"
+  },
+  "platform": "Darwin-arm64",
+  "results": [
+    {
+      "budgetMilliseconds": 8.0,
+      "iterationsPerSample": 1,
+      "maximumMilliseconds": 3.2,
+      "medianMilliseconds": 2.6,
+      "name": "declarative 10,000-row localized paint animation",
+      "percentile95Milliseconds": 3.0,
+      "sampleCount": 240,
+      "warmupCount": 30
+    },
+    {
+      "budgetMilliseconds": 8.0,
+      "iterationsPerSample": 1,
+      "maximumMilliseconds": 0.2,
+      "medianMilliseconds": 0.2,
+      "name": "10,000-item mounted tool-row local invalidation",
+      "percentile95Milliseconds": 0.2,
+      "sampleCount": 200,
+      "warmupCount": 20
+    },
+    {
+      "budgetMilliseconds": 8.0,
+      "iterationsPerSample": 1,
+      "maximumMilliseconds": 0.5,
+      "medianMilliseconds": 0.4,
+      "name": "10,000-item lazy conversation render",
+      "percentile95Milliseconds": 0.5,
+      "sampleCount": 100,
+      "warmupCount": 10
+    },
+    {
+      "budgetMilliseconds": 16.7,
+      "iterationsPerSample": 1,
+      "maximumMilliseconds": 0.3,
+      "medianMilliseconds": 0.3,
+      "name": "200x60 full graph/layout/paint/present",
+      "percentile95Milliseconds": 0.3,
+      "sampleCount": 30,
+      "warmupCount": 5
+    },
+    {
+      "budgetMilliseconds": 8.0,
+      "iterationsPerSample": 1,
+      "maximumMilliseconds": 0.0,
+      "medianMilliseconds": 0.0,
+      "name": "localized 120x40 graph/layout/paint/present",
+      "percentile95Milliseconds": 0.0,
+      "sampleCount": 240,
+      "warmupCount": 30
+    }
+  ],
+  "revision": "b4c5348045929b4e259ebc0191fd2fafe70edf2d",
+  "schemaVersion": 1,
+  "swiftVersion": "6.3.3",
+  "testsDiscovered": 13
+}

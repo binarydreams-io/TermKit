@@ -1,14 +1,23 @@
 # Changelog
 
-## 0.1.0-preview
+All notable changes appear in this file.
 
-Canonical version: `Sources/SwiftTUI/VERSION`
+## 2.1.0 - 2026-08-14
 
-- Publish the new `SwiftTUI` package and umbrella product.
-- Add packed-cell rendering, damage tracking, ANSI diff output, and terminal capability fallback.
-- Add retained graph reconciliation, state, environment, preferences, layout, and animation.
-- Add general controls, semantic design primitives, rich text, and coding-agent components.
-- Add the runnable `SwiftTUIShowcase` executable.
-- Add deterministic, property, PTY, semantic snapshot, and release performance tests.
+### Added
 
-This preview does not preserve TUIkit 1.x source compatibility. See `MIGRATION.md`.
+- One `TermKit` library product and module for macOS 14+ and glibc Linux.
+- Declarative views, retained reconciliation, layout, animation, controls, rich text, agent interfaces, and terminal runtime.
+- Bounded PNG and JPEG decoding through `swift-png` 4.5.1 and `swift-jpeg` 2.1.0.
+- Truecolor, ANSI-256, ANSI-16, and monochrome terminal image rendering.
+- An adaptive, silent TermKitPlayer example with original artwork and PTY tests.
+
+### Changed
+
+- Renamed runtime APIs to `Runtime`, `RuntimeError`, and `RuntimeDiagnostic`.
+- Renamed the duration type to `TimeSpan` and the design surface to `SurfaceView`.
+- Consolidated toast presentation under `ToastKind`.
+
+### Removed
+
+- Removed legacy targets, vendored codecs, compatibility tooling, and old module aliases.

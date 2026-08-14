@@ -1,0 +1,42 @@
+termkit-player-semantic-snapshot-v1
+size 180x40
+row 0: FULL DECK // TK-97
+row 2: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+row 3: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀   Blue Hour Relay
+row 4: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀   North Circuit · Signals After Rain
+row 5: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  PAUSED  0:00 / 3:37
+row 6: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  ────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────────
+row 7: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  [|<] [▶] [>|] VOL 65% ━━━━━━──── SHUF OFF · REP OFF
+row 8: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀  ▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅▁▇▇▁▅▃▃▅
+row 9: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+row 10: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+row 11: ▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀
+row 13: QUEUE
+row 14: ▶ Blue Hour Relay                                                                                                                                                             3:37
+row 15: Glass Harbor                                                                                                                                                                4:44
+row 16: Static Bloom                                                                                                                                                                3:11
+row 17: Last Carrier                                                                                                                                                                4:06
+row 22: Visual simulation, no audio output · Space play · n/p track · ←/→ seek · +/- volume · m mute · s shuffle · r repeat · q quit
+node player-header role=group label=FULL DECK // TK-97 value=nil frame=0,0,18,1 actions=
+node player-header-content role=text label=FULL DECK // TK-97 value=nil frame=0,0,18,1 actions=
+node album-art role=image label=Original artwork for Signals After Rain value=nil frame=0,2,24,10 actions=
+node track-display role=group label=Blue Hour Relay
+North Circuit · Signals After Rain value=nil frame=26,2,36,3 actions=
+node track-display-content role=text label=Blue Hour Relay
+North Circuit · Signals After Rain value=nil frame=27,3,34,2 actions=
+node playback-state role=text label=PAUSED  0:00 / 3:37 value=nil frame=26,5,19,1 actions=
+node playback-progress role=progressIndicator label=Playback position value=0% frame=26,6,152,1 actions=decrement,increment
+node previous-track role=button label=[|<] value=nil frame=26,7,4,1 actions=activate,focus
+node play-pause role=button label=[▶] value=nil frame=31,7,3,1 actions=activate,focus
+node next-track role=button label=[>|] value=nil frame=35,7,4,1 actions=activate,focus
+node volume-state role=text label=VOL 65% value=nil frame=40,7,7,1 actions=
+node volume-progress role=progressIndicator label=Volume value=65% frame=48,7,10,1 actions=decrement,increment
+node play-mode role=text label=SHUF OFF · REP OFF value=nil frame=59,7,18,1 actions=
+node player-spectrum role=progressIndicator label=Signal spectrum value=Paused frame=26,8,152,1 actions=
+node queue-heading role=text label=QUEUE value=nil frame=0,13,5,1 actions=
+node player-queue role=list label=Playback queue value=nil frame=0,14,180,7 actions=
+node queue-item-0 role=listItem label=Blue Hour Relay by North Circuit value=3:37 frame=0,14,180,1 actions=activate,focus
+node queue-item-1 role=listItem label=Glass Harbor by Mira Vale value=4:44 frame=0,15,180,1 actions=activate,focus
+node queue-item-2 role=listItem label=Static Bloom by The Quiet Array value=3:11 frame=0,16,180,1 actions=activate,focus
+node queue-item-3 role=listItem label=Last Carrier by Vela Memory value=4:06 frame=0,17,180,1 actions=activate,focus
+node keyboard-hints role=text label=Visual simulation, no audio output · Space play · n/p track · ←/→ seek · +/- volume · m mute · s shuffle · r repeat · q quit value=nil frame=0,22,124,1 actions=
