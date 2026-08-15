@@ -66,7 +66,11 @@ actionlint "$PROJECT_DIR"/.github/workflows/*.yml
 
 swift build --package-path "$PROJECT_DIR" --scratch-path "$TEMP_DIR/debug" -Xswiftc -warnings-as-errors
 swift build --package-path "$PROJECT_DIR" --scratch-path "$TEMP_DIR/release" -c release -Xswiftc -warnings-as-errors
-swift test --package-path "$PROJECT_DIR" --scratch-path "$TEMP_DIR/tests"
+swift test \
+    --package-path "$PROJECT_DIR" \
+    --scratch-path "$TEMP_DIR/tests" \
+    --parallel \
+    --num-workers 1
 swift build --package-path "$PROJECT_DIR/Examples" --scratch-path "$TEMP_DIR/examples-build" -Xswiftc -warnings-as-errors
 swift test --package-path "$PROJECT_DIR/Examples" --scratch-path "$TEMP_DIR/examples-tests"
 "$SCRIPT_DIR/generate-documentation.sh" "$TEMP_DIR/documentation"
