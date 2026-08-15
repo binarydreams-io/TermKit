@@ -204,6 +204,7 @@ struct TerminalEventSourceTests {
     #expect(poll(&resultPoll, 1, 0) == 0)
     try source.wake()
     try #require(finished.wait(timeout: .now() + 1) == .success)
+    waitQueue.sync {}
 
     var resultByte: UInt8 = 0
     try #require(read(resultDescriptors[0], &resultByte, 1) == 1)
