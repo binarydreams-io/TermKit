@@ -1,7 +1,7 @@
 # TermKit
 
 [![CI](https://github.com/binarydreams-io/termkit/actions/workflows/ci.yml/badge.svg)](https://github.com/binarydreams-io/termkit/actions/workflows/ci.yml)
-[![Release](https://img.shields.io/github/v/release/binarydreams-io/termkit)](https://github.com/binarydreams-io/termkit/releases)
+[![Release](https://img.shields.io/github/v/release/binarydreams-io/TermKit)](https://github.com/binarydreams-io/TermKit/releases)
 
 <a href="https://binarydreams.io" target="_blank" rel="noopener noreferrer">
   <img src="Icon.svg" alt="TermKit icon" width="120" align="left">
