@@ -11,7 +11,7 @@ struct RichTextLayoutTests {
       title: "Example",
       showsLineNumbers: true,
       wrapPolicy: .character,
-      selection: TextRange(0, 3)
+      selection: TextRange(lowerBound: 0, upperBound: 3)
     )
 
     let result = CodeBlockLayout().layout(model, width: 8, highlighter: PlainSyntaxHighlighter())
@@ -25,12 +25,12 @@ struct RichTextLayoutTests {
     #expect(result.rows.map(\.lineNumber) == [1, nil])
     #expect(result.rows.map(\.isContinuation) == [false, true])
     #expect(result.copyText == "123")
-    #expect(result.selection == TextRange(0, 3))
+    #expect(result.selection == TextRange(lowerBound: 0, upperBound: 3))
   }
 
   @Test
   func `Code block can disable copy and selection`() {
-    let model = CodeBlockModel(code: "value", isCopyEnabled: false, isSelectable: false, selection: TextRange(0, 2))
+    let model = CodeBlockModel(code: "value", isCopyEnabled: false, isSelectable: false, selection: TextRange(lowerBound: 0, upperBound: 2))
     let result = CodeBlockLayout().layout(model, width: 10)
 
     #expect(result.copyText == nil)
@@ -49,7 +49,7 @@ struct RichTextLayoutTests {
 
   @Test
   func `Automatic diff layout switches only above 120 columns`() {
-    let view = DiffView(model: DiffViewModel(unifiedDiff: sampleDiff))
+    let view = DiffLayout(model: DiffViewModel(unifiedDiff: sampleDiff))
 
     #expect(view.layout(width: 120).mode == .unified)
     #expect(view.layout(width: 121).mode == .sideBySide)
@@ -57,10 +57,10 @@ struct RichTextLayoutTests {
 
   @Test
   func `Explicit diff layout policy overrides terminal width`() {
-    let narrow = DiffView(
+    let narrow = DiffLayout(
       model: DiffViewModel(unifiedDiff: sampleDiff, layoutPolicy: .sideBySide)
     )
-    let wide = DiffView(
+    let wide = DiffLayout(
       model: DiffViewModel(unifiedDiff: sampleDiff, layoutPolicy: .unified)
     )
 
@@ -70,7 +70,7 @@ struct RichTextLayoutTests {
 
   @Test
   func `Side-by-side layout pairs removals and additions`() {
-    let result = DiffView(model: DiffViewModel(unifiedDiff: sampleDiff)).layout(width: 121)
+    let result = DiffLayout(model: DiffViewModel(unifiedDiff: sampleDiff)).layout(width: 121)
     let pairs = result.rows.compactMap { row -> (DiffPaneLine?, DiffPaneLine?)? in
       guard case let .sideBySide(left, right) = row else { return nil }
       return (left, right)

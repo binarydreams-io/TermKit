@@ -30,10 +30,10 @@ struct PrimitivesTests {
       style: .default
     )
 
-    #expect(line.text(in: 21) == "main · branch · 12:45")
-    #expect(line.text(in: 13) == "main · branch")
-    #expect(line.text(in: 4) == "main")
-    #expect(line.text(in: 3) == "mai")
+    #expect(line.text(fittingWidth: 21) == "main · branch · 12:45")
+    #expect(line.text(fittingWidth: 13) == "main · branch")
+    #expect(line.text(fittingWidth: 4) == "main")
+    #expect(line.text(fittingWidth: 3) == "mai")
   }
 
   @Test
@@ -47,9 +47,9 @@ struct PrimitivesTests {
       separator: " "
     )
 
-    #expect(line.text(in: 4) == "界 x")
-    #expect(line.text(in: 2) == "界")
-    #expect(line.text(in: 1) == "�")
+    #expect(line.text(fittingWidth: 4) == "界 x")
+    #expect(line.text(fittingWidth: 2) == "界")
+    #expect(line.text(fittingWidth: 1) == "�")
   }
 
   @Test
@@ -174,8 +174,8 @@ struct PrimitivesTests {
   @MainActor
   func `status pill resolves semantic tones and supports bare presentation`() throws {
     let theme = try SemanticTheme.standard.resolve(scheme: .dark)
-    let pill = StatusPill(text: "Ready", tone: .success, theme: theme)
-    let bare = StatusPill(text: "Ready", tone: .success, theme: theme, presentation: .bare)
+    let pill = StatusPill(text: "Ready", kind: .success, theme: theme)
+    let bare = StatusPill(text: "Ready", kind: .success, theme: theme, presentation: .bare)
     var resources = ControlRenderResources()
     var pillSurface = Surface(size: CellSize(width: 7, height: 1))
     var bareSurface = Surface(size: CellSize(width: 5, height: 1))
@@ -233,23 +233,23 @@ struct PrimitivesTests {
     (StatusKind.error, SemanticColorRole.error, ColorScheme.dark)
   ])
   func `status pill maps every tone to its semantic color`(
-    tone: StatusPillTone,
+    tone: StatusKind,
     role: SemanticColorRole,
     scheme: ColorScheme
   ) throws {
     let theme = try SemanticTheme.standard.resolve(scheme: scheme)
-    let pill = try StatusPill(text: "State", tone: tone, theme: SemanticTheme.standard, scheme: scheme)
+    let pill = try StatusPill(text: "State", kind: tone, theme: SemanticTheme.standard, scheme: scheme)
 
-    #expect(pill.tone == tone)
+    #expect(pill.kind == tone)
     #expect(pill.style.background == .rgba(theme[role]))
   }
 
   @Test
   func `status pill updates theme style after tone and presentation changes`() throws {
     let theme = try SemanticTheme.standard.resolve(scheme: .light)
-    var pill = StatusPill(text: "State", tone: .success, theme: theme)
+    var pill = StatusPill(text: "State", kind: .success, theme: theme)
 
-    pill.tone = .error
+    pill.kind = .error
     #expect(pill.style.background == .rgba(theme[.error]))
 
     pill.presentation = .bare

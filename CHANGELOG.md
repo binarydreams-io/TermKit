@@ -2,6 +2,36 @@
 
 All notable changes appear in this file.
 
+## Unreleased
+
+### Changed
+
+- `Runtime` gains `process(terminalEvent:)`, resolving the ambiguity between the `TerminalRuntimeEvent` and `RuntimeEvent.signal` overloads.
+- `StatusPill` adopts `kind`/`StatusKind` in place of `tone`/`StatusPillTone`.
+- `PromptAutocompleteState.moveSelection(by:wrapping:)` can wrap selection at the ends; the default still clamps.
+- `AgentPromptActions` collapses to a single initializer with a defaulted `diagnostic` parameter.
+- `TerminalCapabilities` merges its two initializers into one; `supportsOSC52` defaults to `allowsOSC52`.
+- `TerminalKeyEvent` merges its two initializers into one.
+- `RenderStats.didRebuildInterners` replaces `rebuiltInterners`.
+- `Runtime`'s imperative view initializer defaults `textSelectionConfiguration` to `.disabled`, and its redundant convenience initializers are removed.
+- `FocusMetadata` and `HitTestMetadata` each collapse to a single initializer.
+- `MountedNode.preference(for:)` replaces `preference(_:)`.
+
+### Deprecated
+
+- `TextRange.init(_:_:)`, renamed to `init(lowerBound:upperBound:)`.
+- `MetadataLine.visibleFields(in:)` and `text(in:)`, renamed to `visibleFields(fittingWidth:)` and `text(fittingWidth:)`.
+- `PaintContext.applyingOpacity(_:)`, renamed to `multiplyingOpacity(_:)`.
+- `StatusPill.tone` and `StatusPillTone`, renamed to `kind` and `StatusKind`.
+- `VerticalEdge`, renamed to `HorizontalEdge`.
+- `MountedNode.presentationValue(for:)`, renamed to `presentationValue(_:)`.
+- `ValueAnimation.transaction(for:from:)`, renamed to `updateValue(_:from:)`.
+- `GraphemeRemap.map(_:)` and `StyleRemap.map(_:)`, renamed to `remappedID(for:)`.
+- `SelectList.setQuery(_:)`; assign `query` instead.
+- `SynchronizedOutputProbe.applying(_:to:)`; use `TerminalCapabilities.applying(_:)` instead.
+- `DiffView`, renamed to `DiffLayout`.
+- `OverlayHost`'s unused `DialogHost` typealias.
+
 ## 2.2.4 - 2026-08-15
 
 ### Fixed

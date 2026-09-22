@@ -11,7 +11,7 @@ struct SelectListTests {
       SelectListItem(id: 3, title: "Close", group: "File", isEnabled: false)
     ])
 
-    list.setQuery("appearance")
+    list.query = "appearance"
 
     #expect(list.filteredItems.map(\.id) == [2])
     #expect(list.groups.map(\.title) == ["View"])

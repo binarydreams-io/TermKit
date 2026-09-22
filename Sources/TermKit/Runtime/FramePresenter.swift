@@ -262,7 +262,7 @@ public final class FramePresenter {
         changedCellCount: diff.changedCellCount,
         operationCount: diff.operations.count,
         wasFullRepaint: fullRepaint,
-        rebuiltInterners: rebuiltInterners
+        didRebuildInterners: rebuiltInterners
       )
     )
   }

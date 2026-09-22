@@ -92,7 +92,7 @@ struct DeclarativeViewTests {
     let graph = ViewGraph()
     try graph.commit(graph.prepare(PreferenceTree()))
 
-    #expect(graph.root?.preference(SumPreference.self) == 6)
+    #expect(graph.root?.preference(for: SumPreference.self) == 6)
   }
 
   @Test
@@ -105,7 +105,7 @@ struct DeclarativeViewTests {
     try graph.commit(graph.prepare(PreferenceReader(value: 2)))
 
     #expect(root.dirtyFlags == .structure)
-    #expect(root.preference(SumPreference.self) == 2)
+    #expect(root.preference(for: SumPreference.self) == 2)
   }
 
   @Test(.timeLimit(.minutes(1)))

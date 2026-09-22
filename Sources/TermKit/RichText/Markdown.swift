@@ -187,7 +187,7 @@ public struct MarkdownParser: Sendable {
     )
     return MarkdownParseResult(
       document: document,
-      reparsedRange: TextRange(start, newSource.utf8.count)
+      reparsedRange: TextRange(lowerBound: start, upperBound: newSource.utf8.count)
     )
   }
 
@@ -253,12 +253,12 @@ public struct MarkdownParser: Sendable {
         }
         if isClosed == false {
           diagnostics.append(
-            MarkdownDiagnostic(range: TextRange(start, end), message: "Unclosed fenced code block")
+            MarkdownDiagnostic(range: TextRange(lowerBound: start, upperBound: end), message: "Unclosed fenced code block")
           )
         }
         blocks.append(
           MarkdownBlock(
-            range: TextRange(start, end),
+            range: TextRange(lowerBound: start, upperBound: end),
             kind: .codeFence(
               MarkdownCodeFence(
                 code: codeLines.joined(separator: "\n"),
@@ -308,7 +308,7 @@ public struct MarkdownParser: Sendable {
         }
         blocks.append(
           MarkdownBlock(
-            range: TextRange(start, end),
+            range: TextRange(lowerBound: start, upperBound: end),
             kind: .blockQuote(parseInline(content.joined(separator: "\n")))
           )
         )
@@ -327,7 +327,7 @@ public struct MarkdownParser: Sendable {
         }
         blocks.append(
           MarkdownBlock(
-            range: TextRange(start, end),
+            range: TextRange(lowerBound: start, upperBound: end),
             kind: ordered ? .orderedList(items) : .unorderedList(items)
           )
         )
@@ -348,7 +348,7 @@ public struct MarkdownParser: Sendable {
       }
       blocks.append(
         MarkdownBlock(
-          range: TextRange(start, end),
+          range: TextRange(lowerBound: start, upperBound: end),
           kind: .paragraph(parseInline(content.joined(separator: " ")))
         )
       )
@@ -509,7 +509,7 @@ public struct MarkdownParser: Sendable {
     }
     return (
       MarkdownBlock(
-        range: TextRange(lines[index].range.lowerBound, end),
+        range: TextRange(lowerBound: lines[index].range.lowerBound, upperBound: end),
         kind: .table(
           MarkdownTable(
             headers: headers.map { parseInline($0, baseRole: .tableHeader) },
@@ -572,7 +572,7 @@ public struct StreamingMarkdownParser: Sendable {
   @discardableResult
   public mutating func append(_ fragment: String) throws -> MarkdownParseResult {
     let end = document.source.utf8.count
-    let result = try parser.reparseTail(of: document, replacing: TextRange(end, end), with: fragment)
+    let result = try parser.reparseTail(of: document, replacing: TextRange(lowerBound: end, upperBound: end), with: fragment)
     document = result.document
     return result
   }
@@ -583,7 +583,7 @@ public struct StreamingMarkdownParser: Sendable {
   public mutating func replaceTail(fromUTF8Offset offset: Int, with replacement: String) throws -> MarkdownParseResult {
     let result = try parser.reparseTail(
       of: document,
-      replacing: TextRange(offset, document.source.utf8.count),
+      replacing: TextRange(lowerBound: offset, upperBound: document.source.utf8.count),
       with: replacement
     )
     document = result.document
@@ -604,7 +604,7 @@ private struct MarkdownLine {
       let content = String(part)
       let hasNewline = index < parts.count - 1
       let byteCount = part.utf8.count + (hasNewline ? 1 : 0)
-      result.append(MarkdownLine(content: content, range: TextRange(position, position + byteCount)))
+      result.append(MarkdownLine(content: content, range: TextRange(lowerBound: position, upperBound: position + byteCount)))
       position += byteCount
     }
     return result

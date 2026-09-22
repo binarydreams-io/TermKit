@@ -182,7 +182,7 @@ struct FramePresenterTests {
 
     let result = try presenter.present(surface)
 
-    #expect(result.stats.rebuiltInterners)
+    #expect(result.stats.didRebuildInterners)
     #expect(result.stats.wasFullRepaint)
     #expect(presenter.resources.graphemes.stats.entryCount == 2)
     #expect(session.presentationCount == 2)
@@ -305,7 +305,7 @@ final class FakeTerminalSession: RuntimeTerminalSession {
   }
 
   func applySynchronizedOutputProbeResult(_ result: SynchronizedOutputProbeResult) {
-    capabilities = SynchronizedOutputProbe.applying(result, to: capabilities)
+    capabilities = capabilities.applying(result)
   }
 
   func handleSignalEvent(_ event: TerminalSignalEvent) throws -> TerminalSignalAction {

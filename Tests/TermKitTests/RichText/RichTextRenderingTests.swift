@@ -99,7 +99,7 @@ struct RichTextRenderingTests {
       title: "Example",
       showsLineNumbers: true,
       wrapPolicy: .character,
-      selection: TextRange(4, 9)
+      selection: TextRange(lowerBound: 4, upperBound: 9)
     )
     let rendered = try CodeBlock(model: model).render(width: 12, scheme: .dark)
 
@@ -122,7 +122,7 @@ struct RichTextRenderingTests {
     -old
     +new
     """
-    let view = DiffView(model: DiffViewModel(unifiedDiff: source))
+    let view = DiffLayout(model: DiffViewModel(unifiedDiff: source))
     let narrow = try view.render(width: 40, scheme: .light)
     let wide = try view.render(width: 121, scheme: .dark)
     let narrowCells = narrow.cells.rows.flatMap(\.self)
@@ -142,7 +142,7 @@ struct RichTextRenderingTests {
   @Test
   func `Malformed diff renders original plain text with diagnostics`() throws {
     let source = "not a diff\nstill text"
-    let rendered = try DiffView(model: DiffViewModel(unifiedDiff: source)).render(width: 16, scheme: .dark)
+    let rendered = try DiffLayout(model: DiffViewModel(unifiedDiff: source)).render(width: 16, scheme: .dark)
 
     #expect(rowText(rendered, row: 0).hasPrefix("not a diff"))
     #expect(rowText(rendered, row: 1).hasPrefix("still text"))

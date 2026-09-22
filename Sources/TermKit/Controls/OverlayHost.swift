@@ -218,4 +218,5 @@ extension OverlayHost where Content == AnyView {
 }
 
 /// An overlay host used for dialog content.
+@available(*, deprecated, message: "Use `OverlayHost`.")
 public typealias DialogHost<Content: Sendable> = OverlayHost<Content>

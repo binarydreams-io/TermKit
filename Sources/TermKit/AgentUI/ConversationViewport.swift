@@ -46,7 +46,9 @@ public struct ConversationViewportView<Item: AgentContentPresentable>: View {
   }
 }
 
-/// The lazy plan for a transcript. It contains indexes, not transcript items.
+/// The lazy plan for a transcript.
+///
+/// It contains indexes, not transcript items.
 public struct ConversationVisiblePlan: Sendable, Hashable {
   /// The indexes of items to render.
   public var visibleRange: Range<Int>

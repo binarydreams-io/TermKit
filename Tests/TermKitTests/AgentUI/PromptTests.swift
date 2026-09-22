@@ -123,6 +123,21 @@ struct PromptTests {
     #expect(autocomplete.selectList.selectedID == "test")
   }
 
+  @Test
+  func `PromptAutocompleteState wraps selection when requested`() {
+    var state = PromptAutocompleteState(suggestions: [
+      PromptSuggestion(id: "a", kind: .command, title: "A", insertion: PromptInsertion(replacementRange: 0 ..< 0, text: "a")),
+      PromptSuggestion(id: "b", kind: .command, title: "B", insertion: PromptInsertion(replacementRange: 0 ..< 0, text: "b")),
+      PromptSuggestion(id: "c", kind: .command, title: "C", insertion: PromptInsertion(replacementRange: 0 ..< 0, text: "c"))
+    ])
+
+    state.moveSelection(by: -1, wrapping: true)
+    #expect(state.selectedIndex == 2)
+
+    state.moveSelection(by: 1, wrapping: true)
+    #expect(state.selectedIndex == 0)
+  }
+
   @MainActor
   @Test
   func `Autocomplete activation returns typed insertion without mutating the prompt`() throws {

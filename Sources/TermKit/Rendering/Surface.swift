@@ -189,7 +189,7 @@ public struct Surface: Sendable, Equatable {
   public mutating func remapGraphemes(using remap: GraphemeRemap) throws {
     for index in cells.indices {
       let cell = cells[index]
-      guard let identifier = remap.map(cell.graphemeID) else {
+      guard let identifier = remap.remappedID(for: cell.graphemeID) else {
         throw SurfaceError.missingGraphemeRemap(cell.graphemeID)
       }
       cells[index] = PackedCell(
@@ -205,7 +205,7 @@ public struct Surface: Sendable, Equatable {
   public mutating func remapStyles(using remap: StyleRemap) throws {
     for index in cells.indices {
       let cell = cells[index]
-      guard let identifier = remap.map(cell.styleID) else {
+      guard let identifier = remap.remappedID(for: cell.styleID) else {
         throw SurfaceError.missingStyleRemap(cell.styleID)
       }
       cells[index] = PackedCell(

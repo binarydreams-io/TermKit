@@ -52,9 +52,9 @@ struct CellAndInternerTests {
 
     let remap = try interner.rebuild(retaining: [retained])
 
-    #expect(remap.map(.space) == .space)
-    #expect(remap.map(dropped) == nil)
-    let newIdentifier = try #require(remap.map(retained))
+    #expect(remap.remappedID(for: .space) == .space)
+    #expect(remap.remappedID(for: dropped) == nil)
+    let newIdentifier = try #require(remap.remappedID(for: retained))
     #expect(interner.value(for: newIdentifier) == "y")
   }
 

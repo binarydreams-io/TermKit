@@ -99,15 +99,15 @@ private func checkGraphemeInterner(random: inout InternerTestRandom) throws {
   let oldStats = interner.stats
   let remap = try interner.rebuild(retaining: retained)
 
-  try internerRequire(remap.map(.space) == .space, "Space did not retain its stable grapheme ID")
+  try internerRequire(remap.remappedID(for: .space) == .space, "Space did not retain its stable grapheme ID")
   for entry in entries {
     if retained.contains(entry.identifier) {
-      let newIdentifier = try internerRequire(remap.map(entry.identifier), "Retained grapheme is missing from remap")
+      let newIdentifier = try internerRequire(remap.remappedID(for: entry.identifier), "Retained grapheme is missing from remap")
       try internerRequire(interner.value(for: newIdentifier) == entry.value, "Retained grapheme changed after rebuild")
       let stableIdentifier = try interner.intern(entry.value)
       try internerRequire(stableIdentifier == newIdentifier, "Retained grapheme ID is not stable")
     } else {
-      try internerRequire(remap.map(entry.identifier) == nil, "Dropped grapheme remains in remap")
+      try internerRequire(remap.remappedID(for: entry.identifier) == nil, "Dropped grapheme remains in remap")
     }
   }
   try internerRequire(interner.stats.entryCount == retained.count + 1, "Grapheme rebuild retained the wrong entry count")
@@ -147,15 +147,15 @@ private func checkStyleInterner(random: inout InternerTestRandom) throws {
   let oldStats = interner.stats
   let remap = try interner.rebuild(retaining: retained)
 
-  try internerRequire(remap.map(.default) == .default, "Default style did not retain its stable ID")
+  try internerRequire(remap.remappedID(for: .default) == .default, "Default style did not retain its stable ID")
   for entry in entries {
     if retained.contains(entry.identifier) {
-      let newIdentifier = try internerRequire(remap.map(entry.identifier), "Retained style is missing from remap")
+      let newIdentifier = try internerRequire(remap.remappedID(for: entry.identifier), "Retained style is missing from remap")
       try internerRequire(interner.value(for: newIdentifier) == entry.value, "Retained style changed after rebuild")
       let stableIdentifier = try interner.intern(entry.value)
       try internerRequire(stableIdentifier == newIdentifier, "Retained style ID is not stable")
     } else {
-      try internerRequire(remap.map(entry.identifier) == nil, "Dropped style remains in remap")
+      try internerRequire(remap.remappedID(for: entry.identifier) == nil, "Dropped style remains in remap")
     }
   }
   try internerRequire(interner.stats.entryCount == retained.count + 1, "Style rebuild retained the wrong entry count")

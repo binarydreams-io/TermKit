@@ -120,7 +120,9 @@ public struct AssistantMessageFooter: Sendable, Hashable {
   }
 }
 
-/// Open assistant composition. The generic values become concrete views during integration.
+/// Open assistant composition.
+///
+/// The generic values become concrete views during integration.
 public struct AssistantMessage<Markdown: Sendable, Reasoning: Sendable, ToolActivity: Sendable, Diagnostic: Sendable>: Sendable {
   /// The rendered response content.
   public var markdown: [Markdown]

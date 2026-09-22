@@ -139,7 +139,7 @@ struct ScalabilityPerformanceTests {
     #expect(peak.entryCount == limits.rebuildEntryCount)
     #expect(peak.entryCount <= limits.maximumEntryCount)
     #expect(peak.estimatedByteCount <= limits.maximumByteCount)
-    #expect(result.stats.rebuiltInterners)
+    #expect(result.stats.didRebuildInterners)
     #expect(result.stats.wasFullRepaint)
     #expect(rebuilt.entryCount == 2)
     #expect(rebuilt.estimatedByteCount <= limits.maximumByteCount)

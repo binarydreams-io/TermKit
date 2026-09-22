@@ -205,23 +205,13 @@ public struct AgentPromptActions<Attachment: Sendable>: Sendable {
   /// Reports a prompt diagnostic.
   public var diagnostic: @MainActor @Sendable (_ diagnostic: AgentPromptDiagnostic) -> Void
 
-  /// Creates prompt actions without a diagnostic handler.
-  public init(
-    submit: @escaping @MainActor @Sendable (_ document: PromptDocument) -> Void,
-    cancel: @escaping @MainActor @Sendable () -> Void,
-    paste: @escaping @MainActor @Sendable (_ text: String) -> Void,
-    attach: @escaping @MainActor @Sendable (_ attachment: Attachment) -> Void
-  ) {
-    self.init(submit: submit, cancel: cancel, paste: paste, attach: attach, diagnostic: { _ in })
-  }
-
-  /// Creates prompt actions with a diagnostic handler.
+  /// Creates prompt actions with an optional diagnostic handler.
   public init(
     submit: @escaping @MainActor @Sendable (_ document: PromptDocument) -> Void,
     cancel: @escaping @MainActor @Sendable () -> Void,
     paste: @escaping @MainActor @Sendable (_ text: String) -> Void,
     attach: @escaping @MainActor @Sendable (_ attachment: Attachment) -> Void,
-    diagnostic: @escaping @MainActor @Sendable (_ diagnostic: AgentPromptDiagnostic) -> Void
+    diagnostic: @escaping @MainActor @Sendable (_ diagnostic: AgentPromptDiagnostic) -> Void = { _ in }
   ) {
     self.submit = submit
     self.cancel = cancel
@@ -662,15 +652,20 @@ public struct PromptAutocompleteState<ID: Sendable & Hashable>: Sendable, Hashab
     suggestions.isEmpty == false
   }
 
-  /// Moves selection by an offset and clamps it to the suggestion list.
+  /// Moves selection by an offset, clamping or wrapping it to the suggestion list.
   /// - Complexity: O(1).
-  public mutating func moveSelection(by offset: Int) {
+  public mutating func moveSelection(by offset: Int, wrapping: Bool = false) {
     guard suggestions.isEmpty == false else {
       selectedIndex = nil
       return
     }
     let current = selectedIndex ?? 0
-    selectedIndex = min(max(0, current + offset), suggestions.count - 1)
+    if wrapping {
+      let count = suggestions.count
+      selectedIndex = ((current + offset) % count + count) % count
+    } else {
+      selectedIndex = min(max(0, current + offset), suggestions.count - 1)
+    }
   }
 }
 
@@ -748,9 +743,10 @@ public final class PromptAutocomplete<ID: Sendable & Hashable>: Hashable {
   }
 
   /// The text used to filter suggestions.
+  /// - Complexity: O(n), where n is the number of suggestions.
   public var query: String {
     get { selectList.query }
-    set { selectList.setQuery(newValue) }
+    set { selectList.query = newValue }
   }
 
   /// The selected suggestion, if any.

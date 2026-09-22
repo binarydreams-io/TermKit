@@ -57,7 +57,7 @@ public struct AgentCodeBlock: Sendable, Hashable {
       wrapPolicy: wrapPolicy.richTextPolicy,
       isCopyEnabled: isCopyEnabled,
       isSelectable: supportsSelection,
-      selection: selection.map { TextRange($0.lowerBound, $0.upperBound) }
+      selection: selection.map { TextRange(lowerBound: $0.lowerBound, upperBound: $0.upperBound) }
     )
   }
 }
@@ -324,7 +324,7 @@ public struct AgentDiffContentView: AgentComponentRenderable, SemanticRenderable
   /// - Complexity: O(n), where n is the diff size.
   public func render(in context: AgentRenderContext) -> AgentRenderOutput {
     do {
-      let result = try DiffView(model: diffView.richTextModel).render(width: context.width)
+      let result = try DiffLayout(model: diffView.richTextModel).render(width: context.width)
       return result.agentOutput(context: context)
     } catch {
       preconditionFailure("Diff rendering failed: \(error)")
@@ -335,7 +335,7 @@ public struct AgentDiffContentView: AgentComponentRenderable, SemanticRenderable
   /// - Complexity: O(n), where n is the diff size.
   public func sizeThatFits(_ proposal: ProposedCellSize) -> CellSize {
     let width = max(1, proposal.width ?? 80)
-    let size = DiffView(model: diffView.richTextModel).layout(width: width).size
+    let size = DiffLayout(model: diffView.richTextModel).layout(width: width).size
     return CellSize(
       width: min(size.width, proposal.width ?? size.width),
       height: min(size.height, proposal.height ?? size.height)

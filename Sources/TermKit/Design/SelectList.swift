@@ -185,6 +185,7 @@ public final class SelectList<ID: Hashable & Sendable> {
 
   /// Sets the search query and normalizes the selection.
   /// - Complexity: O(*n* × *m*), where *n* is item count and *m* is searchable text length.
+  @available(*, deprecated, message: "Assign `query` instead.")
   public func setQuery(_ query: String) {
     self.query = query
   }

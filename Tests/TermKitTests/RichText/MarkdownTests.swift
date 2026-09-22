@@ -95,7 +95,7 @@ struct MarkdownTests {
 
     let result = try MarkdownParser().reparseTail(
       of: previous,
-      replacing: TextRange(markerOffset, markerOffset + 2),
+      replacing: TextRange(lowerBound: markerOffset, upperBound: markerOffset + 2),
       with: ""
     )
 
@@ -147,7 +147,7 @@ struct MarkdownTests {
 
     let result = try parser.append("- item")
 
-    #expect(result.reparsedRange == TextRange(initial.utf8.count, result.document.source.utf8.count))
+    #expect(result.reparsedRange == TextRange(lowerBound: initial.utf8.count, upperBound: result.document.source.utf8.count))
     #expect(Array(result.document.blocks.prefix(2)) == stableBlocks)
     guard case let .unorderedList(items) = try #require(result.document.blocks.last).kind else {
       Issue.record("Expected an appended list")

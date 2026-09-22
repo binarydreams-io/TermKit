@@ -8,14 +8,7 @@ public struct FocusMetadata: Equatable, Sendable {
   public var order: Int?
 
   /// Creates focus metadata.
-  public init(isFocusable: Bool = false, order: Int? = nil) {
-    self.id = nil
-    self.isFocusable = isFocusable
-    self.order = order
-  }
-
-  /// Creates focus metadata with a stable identifier.
-  public init(id: FocusID, isFocusable: Bool = false, order: Int? = nil) {
+  public init(id: FocusID? = nil, isFocusable: Bool = false, order: Int? = nil) {
     self.id = id
     self.isFocusable = isFocusable
     self.order = order
@@ -33,19 +26,9 @@ public struct HitTestMetadata: Equatable, Sendable {
   /// The optional modal scope associated with the node.
   public var modalScope: String?
 
-  /// Creates basic hit-test metadata.
-  public init(isEnabled: Bool = false, zIndex: Int = 0) {
-    self.init(
-      disablesDescendants: false,
-      isEnabled: isEnabled,
-      zIndex: zIndex,
-      modalScope: nil
-    )
-  }
-
-  /// Creates hit-test metadata with descendant and modal behavior.
+  /// Creates hit-test metadata.
   public init(
-    disablesDescendants: Bool,
+    disablesDescendants: Bool = false,
     isEnabled: Bool = false,
     zIndex: Int = 0,
     modalScope: String? = nil

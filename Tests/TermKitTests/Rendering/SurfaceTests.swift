@@ -72,8 +72,8 @@ struct SurfaceTests {
     let remap = try graphemes.rebuild(retaining: [retained])
     try surface.remapGraphemes(using: remap)
 
-    #expect(remap.map(dropped) == nil)
-    #expect(surface[.zero].graphemeID == remap.map(retained))
+    #expect(remap.remappedID(for: dropped) == nil)
+    #expect(surface[.zero].graphemeID == remap.remappedID(for: retained))
     #expect(throws: Never.self) { try surface.validateWideCells() }
   }
 }

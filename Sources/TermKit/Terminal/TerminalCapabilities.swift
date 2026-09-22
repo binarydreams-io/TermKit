@@ -592,11 +592,24 @@ public struct SynchronizedOutputProbe: Sendable {
   }
 
   /// Applies a definitive probe result to terminal capabilities.
+  @available(*, deprecated, message: "Use `TerminalCapabilities.applying(_:)`.")
   public static func applying(
     _ result: SynchronizedOutputProbeResult,
     to capabilities: TerminalCapabilities
   ) -> TerminalCapabilities {
-    var updated = capabilities
+    capabilities.applying(result)
+  }
+
+  private var completedResult: SynchronizedOutputProbeResult? {
+    guard case let .complete(result) = state else { return nil }
+    return result
+  }
+}
+
+extension TerminalCapabilities {
+  /// Returns capabilities updated with a definitive synchronized-output probe result.
+  public func applying(_ result: SynchronizedOutputProbeResult) -> TerminalCapabilities {
+    var updated = self
     switch result {
     case .supported:
       updated.synchronizedOutput = .supported
@@ -604,11 +617,6 @@ public struct SynchronizedOutputProbe: Sendable {
       updated.synchronizedOutput = .unsupported
     }
     return updated
-  }
-
-  private var completedResult: SynchronizedOutputProbeResult? {
-    guard case let .complete(result) = state else { return nil }
-    return result
   }
 }
 

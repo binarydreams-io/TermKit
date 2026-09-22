@@ -128,7 +128,9 @@ public struct ShellResultCollapsePolicy: Sendable, Hashable {
   }
 }
 
-/// Shell output state. Expansion does not replace the selection or scroll anchor.
+/// Shell output state.
+///
+/// Expansion does not replace the selection or scroll anchor.
 public struct ShellResult: Sendable, Hashable {
   /// The executed command.
   public var command: String

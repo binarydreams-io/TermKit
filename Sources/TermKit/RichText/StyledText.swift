@@ -6,10 +6,16 @@ public struct TextRange: Sendable, Hashable {
   public let upperBound: Int
 
   /// Creates a range from its lower and upper bounds.
-  public init(_ lowerBound: Int, _ upperBound: Int) {
+  public init(lowerBound: Int, upperBound: Int) {
     precondition(lowerBound >= 0 && upperBound >= lowerBound)
     self.lowerBound = lowerBound
     self.upperBound = upperBound
+  }
+
+  /// Creates a range from its lower and upper bounds.
+  @available(*, deprecated, renamed: "init(lowerBound:upperBound:)")
+  public init(_ lowerBound: Int, _ upperBound: Int) {
+    self.init(lowerBound: lowerBound, upperBound: upperBound)
   }
 
   /// The number of bytes represented by the range.
@@ -33,7 +39,7 @@ public struct TextRange: Sendable, Hashable {
   /// Returns the smallest range that contains both ranges.
   /// - Complexity: O(1).
   public func union(_ other: TextRange) -> TextRange {
-    TextRange(Swift.min(lowerBound, other.lowerBound), Swift.max(upperBound, other.upperBound))
+    TextRange(lowerBound: Swift.min(lowerBound, other.lowerBound), upperBound: Swift.max(upperBound, other.upperBound))
   }
 }
 

@@ -44,7 +44,7 @@ public struct PlainSyntaxHighlighter: SyntaxHighlighter, Sendable {
   /// Assigns the code role to the complete source text.
   /// - Complexity: O(*n*), where *n* is the UTF-8 byte count of `text`.
   public func highlight(_ text: String, language: String?, changedRanges: [TextRange] = []) -> SyntaxHighlightResult {
-    let fullRange = TextRange(0, text.utf8.count)
+    let fullRange = TextRange(lowerBound: 0, upperBound: text.utf8.count)
     return SyntaxHighlightResult(
       text: StyledText(text, role: .code),
       spans: text.isEmpty ? [] : [SyntaxHighlightSpan(range: fullRange, role: .code)],
@@ -111,7 +111,7 @@ public struct SubtleSyntaxHighlighter: SyntaxHighlighter, Sendable {
       let byte = bytes[index]
       if byte == 0x2F, index + 1 < bytes.count, bytes[index + 1] == 0x2F {
         let end = lineEnd(in: bytes, from: index)
-        result.append(SyntaxHighlightSpan(range: TextRange(index, end), role: .comment))
+        result.append(SyntaxHighlightSpan(range: TextRange(lowerBound: index, upperBound: end), role: .comment))
         index = end
         continue
       }
@@ -121,13 +121,13 @@ public struct SubtleSyntaxHighlighter: SyntaxHighlighter, Sendable {
           end += 1
         }
         end = end + 1 < bytes.count ? end + 2 : bytes.count
-        result.append(SyntaxHighlightSpan(range: TextRange(index, end), role: .comment))
+        result.append(SyntaxHighlightSpan(range: TextRange(lowerBound: index, upperBound: end), role: .comment))
         index = end
         continue
       }
       if hashComments, byte == 0x23 {
         let end = lineEnd(in: bytes, from: index)
-        result.append(SyntaxHighlightSpan(range: TextRange(index, end), role: .comment))
+        result.append(SyntaxHighlightSpan(range: TextRange(lowerBound: index, upperBound: end), role: .comment))
         index = end
         continue
       }
@@ -146,7 +146,7 @@ public struct SubtleSyntaxHighlighter: SyntaxHighlighter, Sendable {
           }
           end += 1
         }
-        result.append(SyntaxHighlightSpan(range: TextRange(index, end), role: .string))
+        result.append(SyntaxHighlightSpan(range: TextRange(lowerBound: index, upperBound: end), role: .string))
         index = end
         continue
       }
@@ -155,7 +155,7 @@ public struct SubtleSyntaxHighlighter: SyntaxHighlighter, Sendable {
         while end < bytes.count, isDigit(bytes[end]) || bytes[end] == 0x2E || bytes[end] == 0x5F {
           end += 1
         }
-        result.append(SyntaxHighlightSpan(range: TextRange(index, end), role: .number))
+        result.append(SyntaxHighlightSpan(range: TextRange(lowerBound: index, upperBound: end), role: .number))
         index = end
         continue
       }
@@ -166,9 +166,9 @@ public struct SubtleSyntaxHighlighter: SyntaxHighlighter, Sendable {
         }
         let word = String(decoding: bytes[index ..< end], as: UTF8.self)
         if keywords.contains(word) {
-          result.append(SyntaxHighlightSpan(range: TextRange(index, end), role: .keyword))
+          result.append(SyntaxHighlightSpan(range: TextRange(lowerBound: index, upperBound: end), role: .keyword))
         } else if byte >= 0x41, byte <= 0x5A {
-          result.append(SyntaxHighlightSpan(range: TextRange(index, end), role: .type))
+          result.append(SyntaxHighlightSpan(range: TextRange(lowerBound: index, upperBound: end), role: .type))
         }
         index = end
         continue
@@ -180,7 +180,7 @@ public struct SubtleSyntaxHighlighter: SyntaxHighlighter, Sendable {
 
   private func expandedLineRanges(_ ranges: [TextRange], in bytes: [UInt8]) -> [TextRange] {
     if ranges.isEmpty {
-      return [TextRange(0, bytes.count)]
+      return [TextRange(lowerBound: 0, upperBound: bytes.count)]
     }
     var expanded: [TextRange] = []
     for range in ranges.sorted(by: { $0.lowerBound < $1.lowerBound }) {
@@ -197,7 +197,7 @@ public struct SubtleSyntaxHighlighter: SyntaxHighlighter, Sendable {
       if upper < bytes.count {
         upper += 1
       }
-      let candidate = TextRange(lower, upper)
+      let candidate = TextRange(lowerBound: lower, upperBound: upper)
       if let last = expanded.last, last.upperBound >= candidate.lowerBound {
         expanded[expanded.count - 1] = last.union(candidate)
       } else {

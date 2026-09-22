@@ -23,10 +23,10 @@ struct SyntaxHighlightingTests {
     let result = SubtleSyntaxHighlighter().highlight(
       source,
       language: "swift",
-      changedRanges: [TextRange(firstLineEnd + 4, firstLineEnd + 7), TextRange(5, 8)]
+      changedRanges: [TextRange(lowerBound: firstLineEnd + 4, upperBound: firstLineEnd + 7), TextRange(lowerBound: 5, upperBound: 8)]
     )
 
-    #expect(result.changedRanges == [TextRange(0, bytes.count)])
+    #expect(result.changedRanges == [TextRange(lowerBound: 0, upperBound: bytes.count)])
   }
 
   @Test
@@ -35,7 +35,7 @@ struct SyntaxHighlightingTests {
     let result = PlainSyntaxHighlighter().highlight(source, language: nil, changedRanges: [])
 
     #expect(result.text == StyledText(source, role: .code))
-    #expect(result.spans == [SyntaxHighlightSpan(range: TextRange(0, source.utf8.count), role: .code)])
+    #expect(result.spans == [SyntaxHighlightSpan(range: TextRange(lowerBound: 0, upperBound: source.utf8.count), role: .code)])
   }
 
   private func texts(

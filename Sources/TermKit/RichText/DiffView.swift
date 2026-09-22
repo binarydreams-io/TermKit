@@ -111,13 +111,13 @@ public struct DiffLayoutResult: Sendable, Hashable {
 }
 
 /// A layout engine for unified diffs.
-public struct DiffView: Sendable {
+public struct DiffLayout: Sendable {
   /// The minimum automatic-layout width that selects side-by-side mode.
   public static let sideBySideThreshold = 120
   /// The diff view model.
   public let model: DiffViewModel
 
-  /// Creates a diff view.
+  /// Creates a diff layout.
   public init(model: DiffViewModel) {
     self.model = model
   }
@@ -254,3 +254,7 @@ public struct DiffView: Sendable {
     return StyledText(line.content, role: role)
   }
 }
+
+/// A layout engine for unified diffs.
+@available(*, deprecated, renamed: "DiffLayout")
+public typealias DiffView = DiffLayout

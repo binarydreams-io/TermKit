@@ -63,7 +63,7 @@ public final class CommandPalette<ID: Hashable & Sendable> {
   /// The current search query.
   public var query: String {
     get { selectList.query }
-    set { selectList.setQuery(newValue) }
+    set { selectList.query = newValue }
   }
 
   /// Runs the enabled command with the specified identifier.

@@ -223,46 +223,6 @@ public final class Runtime {
   private let missedBudgetCounter = DiagnosticsCounter()
 
   /// Creates a runtime for an imperative runtime view.
-  public convenience init(
-    view: any RuntimeView,
-    presenter: FramePresenter,
-    terminalSize: CellSize,
-    motionPolicy: MotionPolicy = .standard,
-    timeSource: any TimeSource = ContinuousTimeSource(),
-    eventSource: (any RuntimeEventSource)? = nil,
-    processControl: any RuntimeProcessControl = SystemRuntimeProcessControl(),
-    inputParser: TerminalInputParser = TerminalInputParser(),
-    terminalProbePolicy: TerminalProbePolicy = TerminalProbePolicy(),
-    escapeResolutionInterval: TimeSpan = .milliseconds(25),
-    scheduler: FrameScheduler = FrameScheduler(),
-    graph: ViewGraph = ViewGraph(),
-    commands: KeyboardCommandSet = KeyboardCommandSet(),
-    onInput: InputHandler? = nil,
-    onInputError: InputErrorHandler? = nil,
-    onSignal: SignalHandler? = nil
-  ) {
-    self.init(
-      view: view,
-      presenter: presenter,
-      terminalSize: terminalSize,
-      motionPolicy: motionPolicy,
-      timeSource: timeSource,
-      eventSource: eventSource,
-      processControl: processControl,
-      inputParser: inputParser,
-      terminalProbePolicy: terminalProbePolicy,
-      escapeResolutionInterval: escapeResolutionInterval,
-      scheduler: scheduler,
-      graph: graph,
-      commands: commands,
-      onInput: onInput,
-      onInputError: onInputError,
-      onSignal: onSignal,
-      textSelectionConfiguration: .disabled
-    )
-  }
-
-  /// Creates a runtime for an imperative runtime view with text selection.
   public init(
     view: any RuntimeView,
     presenter: FramePresenter,
@@ -280,7 +240,7 @@ public final class Runtime {
     onInput: InputHandler? = nil,
     onInputError: InputErrorHandler? = nil,
     onSignal: SignalHandler? = nil,
-    textSelectionConfiguration: TextSelectionConfiguration,
+    textSelectionConfiguration: TextSelectionConfiguration = .disabled,
     onSelectionEnd: SelectionEndHandler? = nil,
     inputInvalidation: RuntimeInputInvalidation = .full
   ) {
@@ -313,48 +273,6 @@ public final class Runtime {
     self.inputInvalidation = inputInvalidation
     self.pendingDamage = DamageTracker(bounds: CellRect(origin: .zero, size: terminalSize))
     installGraphInvalidationHandler()
-  }
-
-  /// Creates a runtime for a declarative root view.
-  public convenience init(
-    view root: some View,
-    presenter: FramePresenter,
-    terminalSize: CellSize,
-    motionPolicy: MotionPolicy = .standard,
-    timeSource: any TimeSource = ContinuousTimeSource(),
-    eventSource: (any RuntimeEventSource)? = nil,
-    processControl: any RuntimeProcessControl = SystemRuntimeProcessControl(),
-    inputParser: TerminalInputParser = TerminalInputParser(),
-    terminalProbePolicy: TerminalProbePolicy = TerminalProbePolicy(),
-    escapeResolutionInterval: TimeSpan = .milliseconds(25),
-    scheduler: FrameScheduler = FrameScheduler(),
-    graph: ViewGraph = ViewGraph(),
-    commands: KeyboardCommandSet = KeyboardCommandSet(),
-    onInput: InputHandler? = nil,
-    onInputError: InputErrorHandler? = nil,
-    onSignal: SignalHandler? = nil,
-    inputInvalidation: RuntimeInputInvalidation = .full
-  ) {
-    self.init(
-      view: root,
-      presenter: presenter,
-      terminalSize: terminalSize,
-      motionPolicy: motionPolicy,
-      timeSource: timeSource,
-      eventSource: eventSource,
-      processControl: processControl,
-      inputParser: inputParser,
-      terminalProbePolicy: terminalProbePolicy,
-      escapeResolutionInterval: escapeResolutionInterval,
-      scheduler: scheduler,
-      graph: graph,
-      commands: commands,
-      onInput: onInput,
-      onInputError: onInputError,
-      onSignal: onSignal,
-      textSelectionConfiguration: .disabled,
-      inputInvalidation: inputInvalidation
-    )
   }
 
   /// Creates a runtime for a declarative root view with overlays or text selection.
@@ -567,7 +485,7 @@ public final class Runtime {
   }
 
   /// Processes an event from the terminal event source.
-  public func process(_ event: TerminalRuntimeEvent) throws {
+  public func process(terminalEvent event: TerminalRuntimeEvent) throws {
     switch event {
     case .inputReady:
       let output = try inputParser.append(presenter.readInput())
@@ -584,6 +502,13 @@ public final class Runtime {
     case let .signal(signal):
       try process(RuntimeEvent.signal(signal))
     }
+  }
+
+  /// Processes an event from the terminal event source.
+  @available(*, deprecated, renamed: "process(terminalEvent:)")
+  @_disfavoredOverload
+  public func process(_ event: TerminalRuntimeEvent) throws {
+    try process(terminalEvent: event)
   }
 
   /// Runs the event loop until the runtime stops or an error occurs.
@@ -612,7 +537,7 @@ public final class Runtime {
           from: eventSource,
           timeout: nextWaitDuration(at: timeSource.now)
         ) {
-          try process(event)
+          try process(terminalEvent: event)
         }
       }
     } catch {
@@ -1051,10 +976,10 @@ public final class Runtime {
         }
       case .inputClosed:
         completeSynchronizedOutputProbe(.timedOut)
-        try process(event)
+        try process(terminalEvent: event)
         return
       case .wake, .signal:
-        try process(event)
+        try process(terminalEvent: event)
       }
     }
   }

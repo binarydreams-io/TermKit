@@ -517,7 +517,7 @@ public struct CodeBlock: Sendable {
   }
 }
 
-extension DiffView {
+extension DiffLayout {
   /// Renders the diff at the specified width.
   /// - Complexity: O(*n* + *w* × *h*), where *n* is diff length and the other terms are output dimensions.
   public func render(

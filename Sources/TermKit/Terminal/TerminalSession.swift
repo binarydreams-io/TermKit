@@ -151,7 +151,7 @@ public final class TerminalSession {
 
   /// Updates the synchronized-output state from a completed probe.
   public func applySynchronizedOutputProbeResult(_ result: SynchronizedOutputProbeResult) {
-    capabilities = SynchronizedOutputProbe.applying(result, to: capabilities)
+    capabilities = capabilities.applying(result)
   }
 
   /// Sets the title for the active terminal session.

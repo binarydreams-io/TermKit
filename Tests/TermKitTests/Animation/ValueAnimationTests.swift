@@ -8,7 +8,7 @@ struct ValueAnimationTests {
     let base = Transaction(animation: baseAnimation, reduceMotion: true)
     var scoped = ValueAnimation<Int>(.easeOut(duration: .milliseconds(180)), value: 1)
 
-    let transaction = scoped.transaction(for: 1, from: base)
+    let transaction = scoped.updateValue(1, from: base)
 
     #expect(transaction.animation == baseAnimation)
     #expect(transaction.isReducedMotionEnabled)
@@ -19,8 +19,8 @@ struct ValueAnimationTests {
     let animation = Animation.easeOut(duration: .milliseconds(180))
     var scoped = ValueAnimation(animation, value: "idle")
 
-    let changed = scoped.transaction(for: "running", from: Transaction())
-    let unchanged = scoped.transaction(for: "running", from: Transaction())
+    let changed = scoped.updateValue("running", from: Transaction())
+    let unchanged = scoped.updateValue("running", from: Transaction())
 
     #expect(changed.animation == animation)
     #expect(unchanged.animation == nil)
@@ -31,8 +31,8 @@ struct ValueAnimationTests {
   func `Disabled value animation never injects an animation`() {
     var scoped = ValueAnimation(.default, value: false)
 
-    let transaction = scoped.transaction(
-      for: true,
+    let transaction = scoped.updateValue(
+      true,
       from: Transaction(animationsEnabled: false)
     )
 

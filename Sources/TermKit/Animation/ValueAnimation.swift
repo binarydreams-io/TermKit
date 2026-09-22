@@ -12,16 +12,22 @@ public struct ValueAnimation<Value: Equatable & Sendable>: Sendable {
     self.value = value
   }
 
-  /// Returns a transaction that injects the animation when the value changed.
+  /// Stores a new watched value and returns a transaction that injects the animation when the value changed.
   /// - Complexity: O(1), excluding the value's equality operation.
-  public mutating func transaction(
-    for newValue: Value,
-    from base: Transaction = .current
-  ) -> Transaction {
+  public mutating func updateValue(_ newValue: Value, from base: Transaction = .current) -> Transaction {
     guard newValue != value else { return base }
     value = newValue
     var transaction = base
     transaction.animation = transaction.areAnimationsEnabled ? animation : nil
     return transaction
+  }
+
+  /// Returns a transaction that injects the animation when the value changed.
+  @available(*, deprecated, renamed: "updateValue(_:from:)")
+  public mutating func transaction(
+    for newValue: Value,
+    from base: Transaction = .current
+  ) -> Transaction {
+    updateValue(newValue, from: base)
   }
 }

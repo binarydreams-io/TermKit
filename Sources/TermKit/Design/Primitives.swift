@@ -101,20 +101,24 @@ public struct SurfaceView: SemanticRenderable, View, Hashable {
   }
 }
 
-/// A vertical edge of a rectangular region.
-public enum VerticalEdge: Sendable, Hashable {
+/// A horizontal edge of a rectangular region.
+public enum HorizontalEdge: Sendable, Hashable {
   /// The leading edge.
   case leading
   /// The trailing edge.
   case trailing
 }
 
+/// A horizontal edge of a rectangular region.
+@available(*, deprecated, renamed: "HorizontalEdge")
+public typealias VerticalEdge = HorizontalEdge
+
 /// A one-column vertical accent rail.
 public struct AccentRail: SemanticRenderable, Hashable {
   /// The semantic identifier.
   public var id: SemanticID
   /// The edge that contains the rail.
-  public var edge: VerticalEdge
+  public var edge: HorizontalEdge
   /// The rail style.
   public var style: CellStyle
   /// The rail glyph.
@@ -124,7 +128,7 @@ public struct AccentRail: SemanticRenderable, Hashable {
   public init(
     style: CellStyle,
     id: SemanticID = "accent-rail",
-    edge: VerticalEdge = .leading,
+    edge: HorizontalEdge = .leading,
     glyph: Character = "▌"
   ) {
     self.id = id
@@ -330,7 +334,7 @@ public struct MetadataLine: SemanticRenderable, Hashable {
 
   /// Returns fields retained at the specified width.
   /// - Complexity: O(*n*²), where *n* is the number of fields.
-  public func visibleFields(in width: Int) -> [MetadataField] {
+  public func visibleFields(fittingWidth width: Int) -> [MetadataField] {
     guard width > 0 else { return [] }
     let positions = Dictionary(uniqueKeysWithValues: fields.indices.map { ($0, $0) })
     var included = Array(fields.indices)
@@ -351,13 +355,25 @@ public struct MetadataLine: SemanticRenderable, Hashable {
     return included.sorted().map { fields[$0] }
   }
 
+  /// Returns fields retained at the specified width.
+  @available(*, deprecated, renamed: "visibleFields(fittingWidth:)")
+  public func visibleFields(in width: Int) -> [MetadataField] {
+    visibleFields(fittingWidth: width)
+  }
+
   /// Returns visible metadata text clipped to a width.
   /// - Complexity: O(*n*²), where *n* is the number of fields.
-  public func text(in width: Int) -> String {
+  public func text(fittingWidth width: Int) -> String {
     TerminalWidth.prefix(
-      of: visibleFields(in: width).map(\.text).joined(separator: separator),
+      of: visibleFields(fittingWidth: width).map(\.text).joined(separator: separator),
       fitting: max(0, width)
     )
+  }
+
+  /// Returns visible metadata text clipped to a width.
+  @available(*, deprecated, renamed: "text(fittingWidth:)")
+  public func text(in width: Int) -> String {
+    text(fittingWidth: width)
   }
 
   /// Returns the metadata line size constrained by a proposal.
@@ -375,7 +391,7 @@ public struct MetadataLine: SemanticRenderable, Hashable {
     context: PaintContext,
     resources: inout ControlRenderResources
   ) throws -> SemanticNode {
-    let visibleText = text(in: context.clip.width)
+    let visibleText = text(fittingWidth: context.clip.width)
     let frame = try SurfaceTextPainter.paint(
       [StyledRun(visibleText, style: style)],
       into: &surface,
@@ -454,6 +470,7 @@ public enum StatusKind: Sendable, Hashable {
 }
 
 /// A semantic tone for a status pill.
+@available(*, deprecated, renamed: "StatusKind")
 public typealias StatusPillTone = StatusKind
 
 /// The amount of decoration around a status pill.
@@ -476,7 +493,8 @@ public struct StatusPill: SemanticRenderable, Hashable {
   }
 
   /// The semantic status tone.
-  public var tone: StatusPillTone {
+  @available(*, deprecated, renamed: "kind")
+  public var tone: StatusKind {
     get { kind }
     set { kind = newValue }
   }
@@ -503,25 +521,37 @@ public struct StatusPill: SemanticRenderable, Hashable {
   /// Creates a status pill with a style from a resolved semantic theme.
   public init(
     text: String,
-    tone: StatusPillTone,
+    kind: StatusKind,
     theme: ResolvedSemanticTheme,
     id: SemanticID = "status",
     presentation: StatusPillPresentation = .pill
   ) {
     self.id = id
     self.text = text
-    self.kind = tone
+    self.kind = kind
     self.presentation = presentation
     self.resolvedTheme = theme
     self.style = .default
     updateThemeStyle()
   }
 
+  /// Creates a status pill with a style from a resolved semantic theme.
+  @available(*, deprecated, renamed: "init(text:kind:theme:id:presentation:)")
+  public init(
+    text: String,
+    tone: StatusKind,
+    theme: ResolvedSemanticTheme,
+    id: SemanticID = "status",
+    presentation: StatusPillPresentation = .pill
+  ) {
+    self.init(text: text, kind: tone, theme: theme, id: id, presentation: presentation)
+  }
+
   /// Creates a status pill with a style from a semantic theme.
   /// - Throws: ``SemanticThemeError`` if the theme cannot resolve its colors.
   public init(
     text: String,
-    tone: StatusPillTone,
+    kind: StatusKind,
     theme: SemanticTheme,
     scheme: ColorScheme = .dark,
     id: SemanticID = "status",
@@ -529,11 +559,25 @@ public struct StatusPill: SemanticRenderable, Hashable {
   ) throws {
     try self.init(
       text: text,
-      tone: tone,
+      kind: kind,
       theme: theme.resolve(scheme: scheme),
       id: id,
       presentation: presentation
     )
+  }
+
+  /// Creates a status pill with a style from a semantic theme.
+  /// - Throws: ``SemanticThemeError`` if the theme cannot resolve its colors.
+  @available(*, deprecated, renamed: "init(text:kind:theme:scheme:id:presentation:)")
+  public init(
+    text: String,
+    tone: StatusKind,
+    theme: SemanticTheme,
+    scheme: ColorScheme = .dark,
+    id: SemanticID = "status",
+    presentation: StatusPillPresentation = .pill
+  ) throws {
+    try self.init(text: text, kind: tone, theme: theme, scheme: scheme, id: id, presentation: presentation)
   }
 
   /// Returns the pill size constrained by a proposal.
@@ -560,8 +604,8 @@ public struct StatusPill: SemanticRenderable, Hashable {
     return SemanticNode(id: id, role: .status, label: text, value: String(describing: kind), frame: frame)
   }
 
-  private static func colorRole(for tone: StatusPillTone) -> SemanticColorRole {
-    switch tone {
+  private static func colorRole(for kind: StatusKind) -> SemanticColorRole {
+    switch kind {
     case .neutral: .secondary
     case .info: .info
     case .success: .success
@@ -572,7 +616,7 @@ public struct StatusPill: SemanticRenderable, Hashable {
 
   private mutating func updateThemeStyle() {
     guard let resolvedTheme else { return }
-    let color = resolvedTheme[Self.colorRole(for: tone)]
+    let color = resolvedTheme[Self.colorRole(for: kind)]
     style = switch presentation {
     case .pill:
       CellStyle(

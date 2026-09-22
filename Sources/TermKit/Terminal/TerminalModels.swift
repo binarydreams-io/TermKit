@@ -90,28 +90,7 @@ public struct TerminalCapabilities: Equatable, Sendable {
   public var supportsTerminalTitle: Bool
 
   /// Creates a set of terminal capabilities.
-  public init(
-    color: TerminalColorCapability = .ansi16,
-    synchronizedOutput: TerminalCapabilitySupport = .unknown,
-    supportsBracketedPaste: Bool = true,
-    supportsSGRMouse: Bool = true,
-    supportsFocusReporting: Bool = true,
-    supportsKittyKeyboard: Bool = false,
-    allowsOSC52: Bool = false
-  ) {
-    self.init(
-      color: color,
-      synchronizedOutput: synchronizedOutput,
-      supportsBracketedPaste: supportsBracketedPaste,
-      supportsSGRMouse: supportsSGRMouse,
-      supportsFocusReporting: supportsFocusReporting,
-      supportsKittyKeyboard: supportsKittyKeyboard,
-      allowsOSC52: allowsOSC52,
-      supportsOSC52: allowsOSC52
-    )
-  }
-
-  /// Creates a set of terminal capabilities with detected OSC 52 support.
+  /// - Parameter supportsOSC52: The detected OSC 52 support. `nil` means the same as `allowsOSC52`.
   public init(
     color: TerminalColorCapability = .ansi16,
     synchronizedOutput: TerminalCapabilitySupport = .unknown,
@@ -120,7 +99,7 @@ public struct TerminalCapabilities: Equatable, Sendable {
     supportsFocusReporting: Bool = true,
     supportsKittyKeyboard: Bool = false,
     allowsOSC52: Bool = false,
-    supportsOSC52: Bool,
+    supportsOSC52: Bool? = nil,
     supportsTerminalTitle: Bool = false
   ) {
     self.color = color
@@ -129,7 +108,7 @@ public struct TerminalCapabilities: Equatable, Sendable {
     self.supportsSGRMouse = supportsSGRMouse
     self.supportsFocusReporting = supportsFocusReporting
     self.supportsKittyKeyboard = supportsKittyKeyboard
-    self.supportsOSC52 = supportsOSC52
+    self.supportsOSC52 = supportsOSC52 ?? allowsOSC52
     self.allowsOSC52 = allowsOSC52
     self.supportsTerminalTitle = supportsTerminalTitle
   }

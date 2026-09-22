@@ -195,7 +195,9 @@ private final class BackgroundPulseCacheStore<Frame: Sendable>: @unchecked Senda
   }
 }
 
-/// An optional pulse presentation. Base themes and prompts do not depend on this type.
+/// An optional pulse presentation.
+///
+/// Base themes and prompts do not depend on this type.
 public struct BackgroundPulse<Frame: Sendable>: Sendable {
   /// The pulse configuration.
   public var configuration: BackgroundPulseConfiguration

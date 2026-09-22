@@ -117,7 +117,7 @@ struct AgentRichContentTests {
 private struct TestSyntaxHighlighter: SyntaxHighlighter {
   func highlight(_ text: String, language: String?, changedRanges: [TextRange]) -> SyntaxHighlightResult {
     let role: SemanticTextRole = language == "swift" ? .type : .code
-    let range = TextRange(0, text.utf8.count)
+    let range = TextRange(lowerBound: 0, upperBound: text.utf8.count)
     return SyntaxHighlightResult(
       text: StyledText(text, role: role),
       spans: text.isEmpty ? [] : [SyntaxHighlightSpan(range: range, role: role)],

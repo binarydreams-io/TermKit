@@ -106,27 +106,12 @@ public struct TerminalKeyEvent: Equatable, Hashable, Sendable {
     return normalized
   }
 
-  /// Creates a terminal key event.
-  public init(
-    key: TerminalKey,
-    modifiers: TerminalKeyModifiers = [],
-    action: TerminalKeyAction = .press
-  ) {
-    self.init(
-      key: key,
-      modifiers: modifiers,
-      action: action,
-      shiftedKey: nil,
-      baseLayoutKey: nil
-    )
-  }
-
-  /// Creates a terminal key event with Kitty alternate-key data.
+  /// Creates a terminal key event, with optional Kitty alternate-key data.
   public init(
     key: TerminalKey,
     modifiers: TerminalKeyModifiers = [],
     action: TerminalKeyAction = .press,
-    shiftedKey: UnicodeScalar?,
+    shiftedKey: UnicodeScalar? = nil,
     baseLayoutKey: UnicodeScalar? = nil
   ) {
     self.key = key

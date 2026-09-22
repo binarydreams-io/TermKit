@@ -929,8 +929,8 @@ struct RuntimeTests {
     let input = TerminalInputEvent.key(TerminalKeyEvent(key: .enter))
 
     try runtime.process(.input(input))
-    try runtime.process(RuntimeEvent.signal(.suspend))
-    try runtime.process(RuntimeEvent.signal(.resume))
+    try runtime.process(.signal(.suspend))
+    try runtime.process(.signal(.resume))
 
     #expect(inputs == [input])
     #expect(signals == [.suspend, .resume])

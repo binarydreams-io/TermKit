@@ -353,6 +353,7 @@ extension MountedNode {
 
   /// Returns the target value for a typed presentation property.
   /// - Complexity: O(1) on average.
+  @available(*, deprecated, renamed: "presentationValue(_:)")
   public func presentationValue<Value: VectorArithmetic>(for property: PresentationProperty<Value>) -> Value? {
     presentationTarget(for: property)
   }
