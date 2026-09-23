@@ -36,6 +36,10 @@ All notable changes appear in this file.
 - `MountedNode.preference(_:)`; use `preference(for:)`.
 - `OverlayHost`'s unused `DialogHost` typealias.
 
+### Fixed
+
+- `Runtime.run()` waits for terminal events on a Dispatch thread, so a blocked event read does not occupy a thread of the Swift concurrency pool.
+
 ## 2.2.4 - 2026-08-15
 
 ### Fixed

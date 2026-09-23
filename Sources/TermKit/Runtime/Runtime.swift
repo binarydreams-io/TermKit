@@ -1,3 +1,5 @@
+import Dispatch
+
 #if canImport(Darwin)
 import Darwin
 #elseif canImport(Glibc)
@@ -14,12 +16,16 @@ public protocol RuntimeEventSource: Sendable {
 
 extension TerminalEventSource: RuntimeEventSource {}
 
-@concurrent
+/// Waits for the next event on a Dispatch thread, outside the cooperative thread pool.
 private func nextRuntimeEvent(
   from eventSource: any RuntimeEventSource,
   timeout: TimeSpan?
 ) async throws -> TerminalRuntimeEvent? {
-  try eventSource.nextEvent(timeout: timeout)
+  try await withCheckedThrowingContinuation { continuation in
+    DispatchQueue.global().async {
+      continuation.resume(with: Result { try eventSource.nextEvent(timeout: timeout) })
+    }
+  }
 }
 
 /// Defines process operations required by the runtime.
