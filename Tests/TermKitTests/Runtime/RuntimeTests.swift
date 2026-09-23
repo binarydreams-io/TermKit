@@ -1733,7 +1733,11 @@ private final class FakeRuntimeEventSource: RuntimeEventSource, @unchecked Senda
   }
 
   func waitForWaitCount(_ count: Int) async throws {
-    try await Task.detached { [self] in try waitForWaitCountBlocking(count) }.value
+    try await withCheckedThrowingContinuation { continuation in
+      DispatchQueue.global().async { [self] in
+        continuation.resume(with: Result { try waitForWaitCountBlocking(count) })
+      }
+    }
   }
 
   private func waitForWaitCountBlocking(_ count: Int) throws {

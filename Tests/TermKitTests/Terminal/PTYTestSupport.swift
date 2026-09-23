@@ -206,6 +206,33 @@ final class PTYPair: @unchecked Sendable {
     return try (operationResult, readResult.get())
   }
 
+  func captureOutputAsynchronously<Value>(
+    exactByteCount: Int,
+    timeoutMilliseconds: Int32 = 1000,
+    while operation: () async throws -> Value
+  ) async throws -> (result: Result<Value, any Error>, output: [UInt8]) {
+    async let output = readOutput(exactByteCount: exactByteCount, timeoutMilliseconds: timeoutMilliseconds)
+    let operationResult: Result<Value, any Error>
+    do {
+      operationResult = try await .success(operation())
+    } catch {
+      operationResult = .failure(error)
+    }
+    return try await (operationResult, output)
+  }
+
+  private func readOutput(exactByteCount: Int, timeoutMilliseconds: Int32) async throws -> [UInt8] {
+    try await withCheckedThrowingContinuation { continuation in
+      DispatchQueue.global().async { [self] in
+        continuation.resume(
+          with: Result {
+            try readFromMaster(exactByteCount: exactByteCount, timeoutMilliseconds: timeoutMilliseconds)
+          }
+        )
+      }
+    }
+  }
+
   private func wait(
     for events: Int16,
     deadline: UInt64,

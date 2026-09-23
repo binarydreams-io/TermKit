@@ -131,7 +131,7 @@ struct TerminalPTYIntegrationTests {
     var task: Task<Void, any Error>?
 
     do {
-      let start = try pty.captureOutput(exactByteCount: activation.count) {
+      let start = try await pty.captureOutputAsynchronously(exactByteCount: activation.count) {
         let createdTask = Task {
           let session = makeSession(pty: pty)
           try await session.withActiveSession { _ in
@@ -144,8 +144,9 @@ struct TerminalPTYIntegrationTests {
       let runningTask = try start.result.get()
       #expect(start.output == activation)
 
-      let cancellation = try pty.captureOutput(exactByteCount: deactivation.count) {
+      let cancellation = try await pty.captureOutputAsynchronously(exactByteCount: deactivation.count) {
         runningTask.cancel()
+        _ = await runningTask.result
       }
       _ = try cancellation.result.get()
       #expect(cancellation.output == deactivation)
