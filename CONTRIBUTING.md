@@ -1,6 +1,6 @@
 # Contributing
 
-TermKit requires Swift 6.3.3. Install the repository toolchain before you submit a change.
+TermKit requires Swift 6.4. Install the repository toolchain before you submit a change.
 
 ## Development
 

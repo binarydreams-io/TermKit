@@ -12,7 +12,9 @@ trap 'rm -rf "$TEMP_DIR"' EXIT HUP INT TERM
 
 mkdir -p "$OUTPUT_PATH" "$TEMP_DIR/graphs"
 swift build --package-path "$PROJECT_DIR" --scratch-path "$TEMP_DIR/build" --target TermKit -Xswiftc -warnings-as-errors
-MODULE_DIR="$(swift build --package-path "$PROJECT_DIR" --scratch-path "$TEMP_DIR/build" --show-bin-path)/Modules"
+BIN_PATH="$(swift build --package-path "$PROJECT_DIR" --scratch-path "$TEMP_DIR/build" --show-bin-path)"
+MODULE_DIR="$BIN_PATH/Modules"
+[[ -d "$MODULE_DIR" ]] || MODULE_DIR="$BIN_PATH"
 swift -print-target-info > "$TEMP_DIR/target-info.json"
 TARGET="$(swift -warnings-as-errors - "$TEMP_DIR/target-info.json" <<'SWIFT'
 import Foundation

@@ -19,7 +19,7 @@ else
 fi
 
 cat > "$TEMP_DIR/Consumer/Package.swift" <<EOF
-// swift-tools-version: 6.3
+// swift-tools-version: 6.4
 import PackageDescription
 let package = Package(
     name: "TermKitConsumer",
@@ -38,7 +38,7 @@ VERSION="$(tr -d '[:space:]' < "$PACKAGE_DIR/Sources/TermKit/VERSION")"
 printf '%s\n' "$OUTPUT" | grep -Fq "TermKit consumer"
 printf '%s\n' "$OUTPUT" | grep -Fq "$VERSION"
 
-MODULE_DIR="$(find "$TEMP_DIR/build" -type d -path '*/debug/Modules' -print -quit)"
+MODULE_DIR="$(find "$TEMP_DIR/build" -type d \( -path '*/debug/Modules' -o -path '*/Products/Debug*' \) -print -quit)"
 [[ -n "$MODULE_DIR" ]] || { printf '%s\n' "Consumer error: module directory is missing" >&2; exit 1; }
 for fixture in "$PACKAGE_DIR"/CompileFixtures/RemovedModules/*.swift; do
     error_file="$TEMP_DIR/$(basename "$fixture").error"

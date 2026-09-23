@@ -24,8 +24,8 @@ git -C "$PROJECT_DIR" show HEAD:CITATION.cff | grep -Eq "^version: ['\"]?${VERSI
 git -C "$PROJECT_DIR" show HEAD:README.md | grep -Fq "Version \`$VERSION\`"
 git -C "$PROJECT_DIR" show HEAD:Tests/TermKitTests/Integration/TermKitIntegrationTests.swift \
     | grep -Fq "TermKitRelease.version == \"$VERSION\""
-grep -Fq 'SWIFT_VERSION="6.3.3"' "$SCRIPT_DIR/toolchain.env"
-[[ "$(tr -d '[:space:]' < "$PROJECT_DIR/.swift-version")" == "6.3.3" ]]
+grep -Fq 'SWIFT_VERSION="6.4"' "$SCRIPT_DIR/toolchain.env"
+[[ "$(tr -d '[:space:]' < "$PROJECT_DIR/.swift-version")" == "6.4" ]]
 
 PLACEHOLDER_MARKER='<repository''-url>'
 PLACEHOLDER_REPOSITORY='YOUR[_-]''REPOSITORY'

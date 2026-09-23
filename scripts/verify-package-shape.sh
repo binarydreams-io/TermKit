@@ -29,8 +29,8 @@ func object(at path: String) -> [String: Any] {
 let package = object(at: CommandLine.arguments[1])
 let description = object(at: CommandLine.arguments[2])
 guard package["name"] as? String == "TermKit" else { fail("package name must be TermKit") }
-guard ((package["toolsVersion"] as? [String: Any])?["_version"] as? String) == "6.3.0" else {
-    fail("tools version must be 6.3")
+guard ((package["toolsVersion"] as? [String: Any])?["_version"] as? String) == "6.4.0" else {
+    fail("tools version must be 6.4")
 }
 let platforms = package["platforms"] as? [[String: Any]] ?? []
 guard platforms.count == 1, platforms[0]["platformName"] as? String == "macos",
