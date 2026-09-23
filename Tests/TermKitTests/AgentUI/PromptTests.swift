@@ -41,10 +41,10 @@ struct PromptTests {
     let recorder = PromptActionRecorder()
     var prompt = AgentPrompt<String>(
       document: PromptDocument(),
+      actions: recorder.actions,
       configuration: AgentPromptConfiguration(
         pastePolicy: AgentPromptPastePolicy(largePasteThreshold: 4, largePasteBehavior: .reject)
-      ),
-      actions: recorder.actions
+      )
     )
 
     let acceptedOrdinaryPaste = prompt.paste("text")
@@ -248,8 +248,8 @@ struct PromptTests {
     let actions = PromptActionRecorder().actions
     let firstPrompt = AgentPrompt<String>(
       model.binding,
-      configuration: AgentPromptConfiguration(metadata: AgentPromptMetadata(model: "one")),
       actions: actions,
+      configuration: AgentPromptConfiguration(metadata: AgentPromptMetadata(model: "one")),
       leadingAccessory: { StatefulAccessory(probe: probe) },
       trailingAccessory: { AccessoryLeaf(name: "trailing") }
     )
@@ -273,11 +273,11 @@ struct PromptTests {
     model.document = PromptDocument(text: "Second")
     let updatedPrompt = AgentPrompt<String>(
       model.binding,
+      actions: actions,
       configuration: AgentPromptConfiguration(
         isEnabled: false,
         metadata: AgentPromptMetadata(model: "one")
       ),
-      actions: actions,
       leadingAccessory: { StatefulAccessory(probe: probe) },
       trailingAccessory: { AccessoryLeaf(name: "trailing") }
     )
@@ -293,11 +293,11 @@ struct PromptTests {
 
     let changedMetadataPrompt = AgentPrompt<String>(
       model.binding,
+      actions: actions,
       configuration: AgentPromptConfiguration(
         isEnabled: false,
         metadata: AgentPromptMetadata(model: "two")
       ),
-      actions: actions,
       leadingAccessory: { StatefulAccessory(probe: probe) },
       trailingAccessory: { AccessoryLeaf(name: "trailing") }
     )

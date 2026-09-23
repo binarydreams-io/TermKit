@@ -164,8 +164,8 @@ struct ImageRenderingTests {
     _ = try Image(
       raster,
       label: "Mode",
-      contentMode: mode,
-      background: RGBA8(red: 0, green: 0, blue: 0)
+      background: RGBA8(red: 0, green: 0, blue: 0),
+      contentMode: mode
     ).paint(into: &surface, context: PaintContext(clip: surface.bounds), resources: &resources)
     return surface.cells
   }

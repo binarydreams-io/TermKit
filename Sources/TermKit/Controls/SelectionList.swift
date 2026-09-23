@@ -85,7 +85,7 @@ public struct ListItem<ID: Hashable & Sendable>: Sendable, Hashable, Identifiabl
 
 /// A selectable list with keyboard and pointer navigation.
 @MainActor
-public final class List<ID: Hashable & Sendable> {
+public final class SelectionList<ID: Hashable & Sendable> {
   /// The semantic identifier.
   public let id: SemanticID
   /// The displayed items.

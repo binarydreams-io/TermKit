@@ -4,8 +4,8 @@ import Testing
 @MainActor
 struct InteractionTests {
   @Test
-  func `List keyboard and mouse selection ignore disabled rows`() {
-    let list = List(items: [
+  func `SelectionList keyboard and mouse selection ignore disabled rows`() {
+    let list = SelectionList(items: [
       ListItem(id: 1, label: "One"),
       ListItem(id: 2, label: "Two", isEnabled: false),
       ListItem(id: 3, label: "Three")

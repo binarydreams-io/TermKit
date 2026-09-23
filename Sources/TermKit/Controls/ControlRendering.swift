@@ -111,7 +111,7 @@ public protocol ControlPointerActivatable: Sendable {
 public protocol ControlFocusHandler: Sendable {
   /// Updates the control's focused state.
   @MainActor
-  func controlFocusChanged(_ isFocused: Bool)
+  func controlFocusChanged(to isFocused: Bool)
 }
 
 /// A control that can trap focus within its subtree.

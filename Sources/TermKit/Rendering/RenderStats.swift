@@ -33,13 +33,6 @@ public struct RenderStats: Sendable, Hashable {
   /// A Boolean value that indicates whether the frame rebuilt its interners.
   public var didRebuildInterners: Bool
 
-  /// A Boolean value that indicates whether the frame rebuilt its interners.
-  @available(*, deprecated, renamed: "didRebuildInterners")
-  public var rebuiltInterners: Bool {
-    get { didRebuildInterners }
-    set { didRebuildInterners = newValue }
-  }
-
   /// Creates render statistics.
   public init(
     frameDuration: TimeSpan = .zero,
@@ -75,46 +68,5 @@ public struct RenderStats: Sendable, Hashable {
     self.operationCount = operationCount
     self.wasFullRepaint = wasFullRepaint
     self.didRebuildInterners = didRebuildInterners
-  }
-
-  /// Creates render statistics.
-  @available(*, deprecated, message: "Use the `didRebuildInterners` parameter label instead of `rebuiltInterners`.")
-  @_disfavoredOverload
-  public init(
-    frameDuration: TimeSpan = .zero,
-    reconciliationDuration: TimeSpan = .zero,
-    layoutDuration: TimeSpan = .zero,
-    paintDuration: TimeSpan = .zero,
-    diffDuration: TimeSpan = .zero,
-    writeDuration: TimeSpan = .zero,
-    encodedByteCount: Int = 0,
-    damagedCellCount: Int = 0,
-    missedBudgetCount: Int = 0,
-    activeAnimationCount: Int = 0,
-    internerByteCount: Int = 0,
-    scannedCellCount: Int = 0,
-    changedCellCount: Int = 0,
-    operationCount: Int = 0,
-    wasFullRepaint: Bool = false,
-    rebuiltInterners: Bool = false
-  ) {
-    self.init(
-      frameDuration: frameDuration,
-      reconciliationDuration: reconciliationDuration,
-      layoutDuration: layoutDuration,
-      paintDuration: paintDuration,
-      diffDuration: diffDuration,
-      writeDuration: writeDuration,
-      encodedByteCount: encodedByteCount,
-      damagedCellCount: damagedCellCount,
-      missedBudgetCount: missedBudgetCount,
-      activeAnimationCount: activeAnimationCount,
-      internerByteCount: internerByteCount,
-      scannedCellCount: scannedCellCount,
-      changedCellCount: changedCellCount,
-      operationCount: operationCount,
-      wasFullRepaint: wasFullRepaint,
-      didRebuildInterners: rebuiltInterners
-    )
   }
 }

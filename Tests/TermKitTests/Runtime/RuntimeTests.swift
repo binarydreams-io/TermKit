@@ -246,15 +246,15 @@ struct RuntimeTests {
     let recorder = RuntimePromptRecorder()
     let prompt = AgentPrompt<String>(
       model.binding,
-      configuration: AgentPromptConfiguration(
-        pastePolicy: AgentPromptPastePolicy(largePasteThreshold: 4, largePasteBehavior: .reject)
-      ),
       actions: AgentPromptActions(
         submit: { _ in },
         cancel: {},
         paste: { recorder.pasted.append($0) },
         attach: { _ in },
         diagnostic: { recorder.diagnostics.append($0) }
+      ),
+      configuration: AgentPromptConfiguration(
+        pastePolicy: AgentPromptPastePolicy(largePasteThreshold: 4, largePasteBehavior: .reject)
       )
     )
     let runtime = Runtime(
@@ -1390,8 +1390,8 @@ private struct RuntimePromptTransitionRoot: View {
   var graphBody: [NodeDescriptor] {
     AgentPrompt<String>(
       Binding(get: { model.document }, set: { model.document = $0 }),
-      configuration: model.configuration,
-      actions: AgentPromptActions(submit: { _ in }, cancel: {}, paste: { _ in }, attach: { _ in })
+      actions: AgentPromptActions(submit: { _ in }, cancel: {}, paste: { _ in }, attach: { _ in }),
+      configuration: model.configuration
     ).graphBody
   }
 }

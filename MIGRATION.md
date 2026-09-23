@@ -1,3 +1,38 @@
+# Migration To TermKit 3.0.0
+
+TermKit 3.0.0 requires Swift 6.4. Update your toolchain before you build against this release.
+This is a major release: every deprecated shim from the previous release is removed. TermKit does not provide compatibility aliases.
+
+## API Renames And Removals
+
+| Old API | TermKit 3.0.0 |
+| --- | --- |
+| `TextRange.init(_:_:)` | `TextRange.init(lowerBound:upperBound:)` |
+| `MetadataLine.visibleFields(in:)` | `visibleFields(fittingWidth:)` |
+| `MetadataLine.text(in:)` | `text(fittingWidth:)` |
+| `PaintContext.applyingOpacity(_:)` | `multiplyingOpacity(_:)` |
+| `Runtime.process(_: TerminalRuntimeEvent)` | `process(terminalEvent:)` |
+| `StatusPill.tone` | `StatusPill.kind` |
+| `StatusPillTone` | `StatusKind` |
+| `StatusPill.init(text:tone:theme:id:presentation:)` | `init(text:kind:theme:id:presentation:)` |
+| `StatusPill.init(text:tone:theme:scheme:id:presentation:)` | `init(text:kind:theme:scheme:id:presentation:)` |
+| `VerticalEdge` | `HorizontalEdge` |
+| `MountedNode.presentationValue(for:)` | `presentationValue(_:)` |
+| `ValueAnimation.transaction(for:from:)` | `updateValue(_:from:)` |
+| `GraphemeRemap.map(_:)` | `remappedID(for:)` |
+| `StyleRemap.map(_:)` | `remappedID(for:)` |
+| `SelectList.setQuery(_:)` | assign `query` instead |
+| `SynchronizedOutputProbe.applying(_:to:)` | `TerminalCapabilities.applying(_:)` |
+| `RenderStats.rebuiltInterners` | `didRebuildInterners` |
+| `RenderStats.init(...rebuiltInterners:)` | `init(...didRebuildInterners:)` |
+| `DiffView` | `DiffLayout` |
+| `MountedNode.preference(_:)` | `preference(for:)` |
+| `DialogHost` | `OverlayHost` |
+| `Image.init(_:id:label:contentMode:background:cellAspectRatio:)` | `Image.init(_:label:background:contentMode:cellAspectRatio:id:)` |
+| `AgentPrompt` initializers (`configuration:`/`layoutPolicy:` before `actions:`) | `actions:` moves directly after the document parameter |
+| `ControlFocusHandler.controlFocusChanged(_:)` | `controlFocusChanged(to:)` |
+| `List` | `SelectionList` |
+
 # Migration To TermKit 2.1.0
 
 TermKit 2.1.0 publishes one product and one module. Replace old package products and imports with `TermKit`.

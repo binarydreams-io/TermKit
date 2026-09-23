@@ -106,10 +106,10 @@ private struct PlayerDeck: View {
   private func albumArt(width: Int, height: Int) -> some View {
     Image(
       artwork.image(for: model.currentTrack.artwork),
-      id: "album-art",
       label: "Original artwork for \(model.currentTrack.album)",
+      background: RGBA8(red: 15, green: 39, blue: 61),
       contentMode: .fill,
-      background: RGBA8(red: 15, green: 39, blue: 61)
+      id: "album-art"
     )
     .frame(width: width, height: height, alignment: .topLeading)
   }

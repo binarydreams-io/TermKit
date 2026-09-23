@@ -254,7 +254,3 @@ public struct DiffLayout: Sendable {
     return StyledText(line.content, role: role)
   }
 }
-
-/// A layout engine for unified diffs.
-@available(*, deprecated, renamed: "DiffLayout")
-public typealias DiffView = DiffLayout

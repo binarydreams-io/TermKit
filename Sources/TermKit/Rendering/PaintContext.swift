@@ -115,12 +115,6 @@ public struct PaintContext: Sendable, Hashable {
   }
 
   /// Returns a context with its opacity multiplied by a value.
-  @available(*, deprecated, renamed: "multiplyingOpacity(_:)")
-  public func applyingOpacity(_ value: Double) -> PaintContext {
-    multiplyingOpacity(value)
-  }
-
-  /// Returns a context with its opacity multiplied by a value.
   public func multiplyingOpacity(_ value: Double) -> PaintContext {
     var context = PaintContext(
       clip: clip,

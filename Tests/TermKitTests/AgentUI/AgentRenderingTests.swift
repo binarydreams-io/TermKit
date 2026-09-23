@@ -81,8 +81,8 @@ struct AgentRenderingTests {
   func `Prompt uses element background and separates status semantics`() throws {
     let output = try AgentPrompt<String>(
       document: PromptDocument(text: "Build"),
-      configuration: AgentPromptConfiguration(isBusy: true),
-      actions: Self.noPromptActions()
+      actions: Self.noPromptActions(),
+      configuration: AgentPromptConfiguration(isBusy: true)
     ).render(in: AgentRenderContext(width: 40, scheme: .dark))
 
     #expect(output.cells.rows.flatMap(\.self).compactMap(\.self).allSatisfy { $0.backgroundRole == .element })
@@ -97,8 +97,8 @@ struct AgentRenderingTests {
     let model = RenderingPromptModel()
     let prompt = AgentPrompt<String>(
       model.binding,
-      configuration: AgentPromptConfiguration(metadata: AgentPromptMetadata(model: "swift-6")),
-      actions: Self.noPromptActions()
+      actions: Self.noPromptActions(),
+      configuration: AgentPromptConfiguration(metadata: AgentPromptMetadata(model: "swift-6"))
     )
     let graph = ViewGraph()
     try graph.commit(graph.prepare(prompt))
@@ -141,10 +141,10 @@ struct AgentRenderingTests {
     let components: [any AgentComponentRenderable] = [
       AgentPrompt<String>(
         document: PromptDocument(text: "Explain the failing build and propose a focused fix."),
+        actions: Self.noPromptActions(),
         configuration: AgentPromptConfiguration(
           metadata: AgentPromptMetadata(agent: "Build", model: "swift-6", provider: "local", variant: "fast")
-        ),
-        actions: Self.noPromptActions()
+        )
       ),
       PromptAutocomplete(
         state: PromptAutocompleteState(
@@ -281,8 +281,8 @@ struct AgentRenderingTests {
     let context = try AgentRenderContext(width: 80, scheme: .dark, reduceMotion: true)
     let disabled = AgentPrompt<String>(
       document: PromptDocument(),
-      configuration: AgentPromptConfiguration(isEnabled: false),
-      actions: Self.noPromptActions()
+      actions: Self.noPromptActions(),
+      configuration: AgentPromptConfiguration(isEnabled: false)
     ).render(in: context)
     let busy = ShellResult(command: "build", isRunning: true).render(in: context)
     let error = DiagnosticsList(diagnostics: [
@@ -341,10 +341,10 @@ struct AgentRenderingTests {
   func `Prompt cell-grid snapshot adapts at canonical widths and themes`(width: Int, scheme: ColorScheme) throws {
     let prompt = AgentPrompt<String>(
       document: PromptDocument(text: "Fix the semantic renderer without changing package configuration."),
+      actions: Self.noPromptActions(),
       configuration: AgentPromptConfiguration(
         metadata: AgentPromptMetadata(agent: "Build", model: "swift-6")
-      ),
-      actions: Self.noPromptActions()
+      )
     )
 
     let output = try prompt.render(in: AgentRenderContext(width: width, scheme: scheme))

@@ -215,9 +215,9 @@ public final class FramePresenter {
     var back = surface
     try back.validateWideCells()
     var front = frontSurface
-    let rebuiltInterners = try rebuildInternersIfNeeded(front: &front, back: &back)
+    let didRebuildInterners = try rebuildInternersIfNeeded(front: &front, back: &back)
     let isSizeChange = front?.size != back.size
-    let fullRepaint = forceFullRepaint || requiresFullRepaint || isSizeChange || rebuiltInterners
+    let fullRepaint = forceFullRepaint || requiresFullRepaint || isSizeChange || didRebuildInterners
     let comparison = try fullRepaint ? invalidatedCopy(of: back) : front ?? invalidatedCopy(of: back)
 
     if fullRepaint {
@@ -262,7 +262,7 @@ public final class FramePresenter {
         changedCellCount: diff.changedCellCount,
         operationCount: diff.operations.count,
         wasFullRepaint: fullRepaint,
-        didRebuildInterners: rebuiltInterners
+        didRebuildInterners: didRebuildInterners
       )
     )
   }

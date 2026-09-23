@@ -9,8 +9,8 @@ let raster = try RasterImage(contentsOf: fileURL)
 let view = Image(
     raster,
     label: "Album artwork",
-    contentMode: .fit,
-    background: RGBA8(red: 0, green: 0, blue: 0)
+    background: RGBA8(red: 0, green: 0, blue: 0),
+    contentMode: .fit
 )
 ```
 

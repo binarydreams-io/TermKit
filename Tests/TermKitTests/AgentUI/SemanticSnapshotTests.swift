@@ -387,12 +387,12 @@ struct SemanticSnapshotTests {
   private static func prompt(isEnabled: Bool = true, isBusy: Bool = false) -> AgentPrompt<String> {
     AgentPrompt(
       document: PromptDocument(text: "Fix the semantic renderer without changing package configuration."),
+      actions: AgentPromptActions(submit: { _ in }, cancel: {}, paste: { _ in }, attach: { _ in }),
       configuration: AgentPromptConfiguration(
         isEnabled: isEnabled,
         isBusy: isBusy,
         metadata: AgentPromptMetadata(agent: "Build", model: "swift-6")
-      ),
-      actions: AgentPromptActions(submit: { _ in }, cancel: {}, paste: { _ in }, attach: { _ in })
+      )
     )
   }
 

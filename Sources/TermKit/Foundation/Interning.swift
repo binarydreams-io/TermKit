@@ -70,12 +70,6 @@ public struct GraphemeRemap: Sendable, Equatable {
   public func remappedID(for oldID: GraphemeID) -> GraphemeID? {
     mapping[oldID]
   }
-
-  /// Returns the rebuilt identifier for an old identifier.
-  @available(*, deprecated, renamed: "remappedID(for:)")
-  public func map(_ oldID: GraphemeID) -> GraphemeID? {
-    remappedID(for: oldID)
-  }
 }
 
 /// A mapping from old style identifiers to rebuilt identifiers.
@@ -90,12 +84,6 @@ public struct StyleRemap: Sendable, Equatable {
   /// Returns the rebuilt identifier for an old identifier.
   public func remappedID(for oldID: StyleID) -> StyleID? {
     mapping[oldID]
-  }
-
-  /// Returns the rebuilt identifier for an old identifier.
-  @available(*, deprecated, renamed: "remappedID(for:)")
-  public func map(_ oldID: StyleID) -> StyleID? {
-    remappedID(for: oldID)
   }
 }
 

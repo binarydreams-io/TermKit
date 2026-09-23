@@ -1166,12 +1166,12 @@ final class DeclarativeRuntimeView<Root: View>: IncrementalRuntimeView, Declarat
     guard focusedNodeID != id else { return }
     requiresFullPaint = true
     if let focusedNodeID, let old = graph.node(withID: focusedNodeID) {
-      old.primitive(as: (any ControlFocusHandler).self)?.controlFocusChanged(false)
+      old.primitive(as: (any ControlFocusHandler).self)?.controlFocusChanged(to: false)
       old.invalidate(.paint)
     }
     focusedNodeID = id
     if let id, let new = graph.node(withID: id) {
-      new.primitive(as: (any ControlFocusHandler).self)?.controlFocusChanged(true)
+      new.primitive(as: (any ControlFocusHandler).self)?.controlFocusChanged(to: true)
       new.invalidate(.paint)
     }
   }

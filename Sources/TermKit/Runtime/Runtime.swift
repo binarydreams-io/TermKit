@@ -504,13 +504,6 @@ public final class Runtime {
     }
   }
 
-  /// Processes an event from the terminal event source.
-  @available(*, deprecated, renamed: "process(terminalEvent:)")
-  @_disfavoredOverload
-  public func process(_ event: TerminalRuntimeEvent) throws {
-    try process(terminalEvent: event)
-  }
-
   /// Runs the event loop until the runtime stops or an error occurs.
   public func run() async throws {
     guard isRunningEventLoop == false else { throw RuntimeError.reentrantRun }

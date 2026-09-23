@@ -183,13 +183,6 @@ public final class SelectList<ID: Hashable & Sendable> {
     return order.map { SelectListGroup(title: $0, items: grouped[$0, default: []]) }
   }
 
-  /// Sets the search query and normalizes the selection.
-  /// - Complexity: O(*n* × *m*), where *n* is item count and *m* is searchable text length.
-  @available(*, deprecated, message: "Assign `query` instead.")
-  public func setQuery(_ query: String) {
-    self.query = query
-  }
-
   /// Moves the selection among enabled filtered items.
   /// - Complexity: O(*n*), where *n* is the number of items.
   @discardableResult

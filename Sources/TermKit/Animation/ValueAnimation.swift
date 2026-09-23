@@ -21,13 +21,4 @@ public struct ValueAnimation<Value: Equatable & Sendable>: Sendable {
     transaction.animation = transaction.areAnimationsEnabled ? animation : nil
     return transaction
   }
-
-  /// Returns a transaction that injects the animation when the value changed.
-  @available(*, deprecated, renamed: "updateValue(_:from:)")
-  public mutating func transaction(
-    for newValue: Value,
-    from base: Transaction = .current
-  ) -> Transaction {
-    updateValue(newValue, from: base)
-  }
 }

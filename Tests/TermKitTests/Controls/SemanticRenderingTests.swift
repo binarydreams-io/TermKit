@@ -119,7 +119,7 @@ struct SemanticRenderingTests {
   @Test
   @MainActor
   func `Semantic tree exposes control state and actions`() {
-    let list = List(
+    let list = SelectionList(
       items: [ListItem(id: "a", label: "A"), ListItem(id: "b", label: "B", isEnabled: false)],
       id: "files",
       selection: Selection(values: ["a"]),
@@ -134,14 +134,14 @@ struct SemanticRenderingTests {
 
   @Test
   @MainActor
-  func `List semantic identifiers do not collide when item descriptions match`() {
+  func `SelectionList semantic identifiers do not collide when item descriptions match`() {
     struct ID: Hashable, Sendable, CustomStringConvertible {
       let value: Int
       var description: String {
         "same"
       }
     }
-    let list = List(items: [
+    let list = SelectionList(items: [
       ListItem(id: ID(value: 1), label: "One"),
       ListItem(id: ID(value: 2), label: "Two")
     ])

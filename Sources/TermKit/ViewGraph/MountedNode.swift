@@ -287,12 +287,6 @@ public final class MountedNode: Identifiable {
     preferenceValues.value(for: key)
   }
 
-  /// Returns the resolved value for a preference key.
-  @available(*, deprecated, renamed: "preference(for:)")
-  public func preference<Key: PreferenceKey>(_ key: Key.Type) -> Key.Value {
-    preference(for: key)
-  }
-
   /// Caches the node's measured size, frame, and paint bounds.
   public func cache(size: CellSize, frame: CellRect, paintBounds: CellRect? = nil) {
     cachedSize = size

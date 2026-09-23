@@ -90,7 +90,8 @@ public struct TerminalCapabilities: Equatable, Sendable {
   public var supportsTerminalTitle: Bool
 
   /// Creates a set of terminal capabilities.
-  /// - Parameter supportsOSC52: The detected OSC 52 support. `nil` means the same as `allowsOSC52`.
+  ///
+  /// When `supportsOSC52` is `nil`, OSC 52 support uses the value of `allowsOSC52`.
   public init(
     color: TerminalColorCapability = .ansi16,
     synchronizedOutput: TerminalCapabilitySupport = .unknown,

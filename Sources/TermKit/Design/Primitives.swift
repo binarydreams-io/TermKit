@@ -109,10 +109,6 @@ public enum HorizontalEdge: Sendable, Hashable {
   case trailing
 }
 
-/// A horizontal edge of a rectangular region.
-@available(*, deprecated, renamed: "HorizontalEdge")
-public typealias VerticalEdge = HorizontalEdge
-
 /// A one-column vertical accent rail.
 public struct AccentRail: SemanticRenderable, Hashable {
   /// The semantic identifier.
@@ -355,12 +351,6 @@ public struct MetadataLine: SemanticRenderable, Hashable {
     return included.sorted().map { fields[$0] }
   }
 
-  /// Returns fields retained at the specified width.
-  @available(*, deprecated, renamed: "visibleFields(fittingWidth:)")
-  public func visibleFields(in width: Int) -> [MetadataField] {
-    visibleFields(fittingWidth: width)
-  }
-
   /// Returns visible metadata text clipped to a width.
   /// - Complexity: O(*n*²), where *n* is the number of fields.
   public func text(fittingWidth width: Int) -> String {
@@ -368,12 +358,6 @@ public struct MetadataLine: SemanticRenderable, Hashable {
       of: visibleFields(fittingWidth: width).map(\.text).joined(separator: separator),
       fitting: max(0, width)
     )
-  }
-
-  /// Returns visible metadata text clipped to a width.
-  @available(*, deprecated, renamed: "text(fittingWidth:)")
-  public func text(in width: Int) -> String {
-    text(fittingWidth: width)
   }
 
   /// Returns the metadata line size constrained by a proposal.
@@ -469,10 +453,6 @@ public enum StatusKind: Sendable, Hashable {
   case error
 }
 
-/// A semantic tone for a status pill.
-@available(*, deprecated, renamed: "StatusKind")
-public typealias StatusPillTone = StatusKind
-
 /// The amount of decoration around a status pill.
 public enum StatusPillPresentation: Sendable, Hashable {
   /// Text with one cell of horizontal padding.
@@ -490,13 +470,6 @@ public struct StatusPill: SemanticRenderable, Hashable {
   /// The semantic status kind.
   public var kind: StatusKind {
     didSet { updateThemeStyle() }
-  }
-
-  /// The semantic status tone.
-  @available(*, deprecated, renamed: "kind")
-  public var tone: StatusKind {
-    get { kind }
-    set { kind = newValue }
   }
 
   /// The pill style.
@@ -535,18 +508,6 @@ public struct StatusPill: SemanticRenderable, Hashable {
     updateThemeStyle()
   }
 
-  /// Creates a status pill with a style from a resolved semantic theme.
-  @available(*, deprecated, renamed: "init(text:kind:theme:id:presentation:)")
-  public init(
-    text: String,
-    tone: StatusKind,
-    theme: ResolvedSemanticTheme,
-    id: SemanticID = "status",
-    presentation: StatusPillPresentation = .pill
-  ) {
-    self.init(text: text, kind: tone, theme: theme, id: id, presentation: presentation)
-  }
-
   /// Creates a status pill with a style from a semantic theme.
   /// - Throws: ``SemanticThemeError`` if the theme cannot resolve its colors.
   public init(
@@ -564,20 +525,6 @@ public struct StatusPill: SemanticRenderable, Hashable {
       id: id,
       presentation: presentation
     )
-  }
-
-  /// Creates a status pill with a style from a semantic theme.
-  /// - Throws: ``SemanticThemeError`` if the theme cannot resolve its colors.
-  @available(*, deprecated, renamed: "init(text:kind:theme:scheme:id:presentation:)")
-  public init(
-    text: String,
-    tone: StatusKind,
-    theme: SemanticTheme,
-    scheme: ColorScheme = .dark,
-    id: SemanticID = "status",
-    presentation: StatusPillPresentation = .pill
-  ) throws {
-    try self.init(text: text, kind: tone, theme: theme, scheme: scheme, id: id, presentation: presentation)
   }
 
   /// Returns the pill size constrained by a proposal.

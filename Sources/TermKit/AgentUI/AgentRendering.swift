@@ -397,7 +397,7 @@ extension AgentComponentView: ControlActivatable, ControlPointerActivatable, Con
 
   /// Reports a control focus change.
   /// - Complexity: O(1), excluding handler work.
-  @MainActor public func controlFocusChanged(_ isFocused: Bool) {
+  @MainActor public func controlFocusChanged(to isFocused: Bool) {
     input?.focusChanged(isFocused)
   }
 

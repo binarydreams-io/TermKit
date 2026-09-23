@@ -282,9 +282,9 @@ public struct AgentPrompt<Attachment: Sendable>: Sendable {
   /// Creates an unbound agent prompt.
   public init(
     document: PromptDocument,
+    actions: AgentPromptActions<Attachment>,
     configuration: AgentPromptConfiguration = AgentPromptConfiguration(),
-    layoutPolicy: AgentPromptLayoutPolicy = AgentPromptLayoutPolicy(),
-    actions: AgentPromptActions<Attachment>
+    layoutPolicy: AgentPromptLayoutPolicy = AgentPromptLayoutPolicy()
   ) {
     self.document = document
     self.configuration = configuration
@@ -299,9 +299,9 @@ public struct AgentPrompt<Attachment: Sendable>: Sendable {
   @MainActor
   public init(
     _ document: Binding<PromptDocument>,
+    actions: AgentPromptActions<Attachment>,
     configuration: AgentPromptConfiguration = AgentPromptConfiguration(),
     layoutPolicy: AgentPromptLayoutPolicy = AgentPromptLayoutPolicy(),
-    actions: AgentPromptActions<Attachment>,
     @ViewBuilder leadingAccessory: @escaping @MainActor @Sendable () -> [NodeDescriptor],
     @ViewBuilder trailingAccessory: @escaping @MainActor @Sendable () -> [NodeDescriptor]
   ) {
@@ -318,9 +318,9 @@ public struct AgentPrompt<Attachment: Sendable>: Sendable {
   @MainActor
   public init(
     _ document: Binding<PromptDocument>,
+    actions: AgentPromptActions<Attachment>,
     configuration: AgentPromptConfiguration = AgentPromptConfiguration(),
-    layoutPolicy: AgentPromptLayoutPolicy = AgentPromptLayoutPolicy(),
-    actions: AgentPromptActions<Attachment>
+    layoutPolicy: AgentPromptLayoutPolicy = AgentPromptLayoutPolicy()
   ) {
     self.document = document.wrappedValue
     self.configuration = configuration
@@ -671,7 +671,8 @@ public struct PromptAutocompleteState<ID: Sendable & Hashable>: Sendable, Hashab
 
 /// An anchored adapter that presents prompt suggestions through ``SelectList``.
 @MainActor
-public final class PromptAutocomplete<ID: Sendable & Hashable>: Hashable {
+// swiftlint:disable:next redundant_sendable
+public final class PromptAutocomplete<ID: Sendable & Hashable>: Hashable, Sendable {
   /// The suggestions displayed by the overlay.
   public var suggestions: [PromptSuggestion<ID>] {
     didSet { selectList.items = Self.items(from: suggestions, isEnabled: isEnabled) }

@@ -19,3 +19,8 @@ Use ``SurfaceView`` for the design primitive. The renderer continues to use ``Su
 Rename old environment variables to the `TERMKIT_*` form.
 
 TermKit does not provide aliases for removed modules or API names.
+
+## Updating to 3.0.0
+
+TermKit 3.0.0 requires Swift 6.4 and removes every deprecated shim carried from the previous release. See the
+`Old API | TermKit 3.0.0` table in the repository's `MIGRATION.md` for the complete list of renames.

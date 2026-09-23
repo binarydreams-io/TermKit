@@ -26,11 +26,11 @@ public struct Image: View, SemanticRenderable, Sendable, Hashable {
   /// Creates a terminal image view.
   public init(
     _ image: RasterImage,
-    id: SemanticID = "image",
     label: String,
-    contentMode: ImageContentMode = .fit,
     background: RGBA8,
-    cellAspectRatio: Double = 2
+    contentMode: ImageContentMode = .fit,
+    cellAspectRatio: Double = 2,
+    id: SemanticID = "image"
   ) {
     precondition(label.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false)
     precondition(cellAspectRatio.isFinite && cellAspectRatio > 0)
