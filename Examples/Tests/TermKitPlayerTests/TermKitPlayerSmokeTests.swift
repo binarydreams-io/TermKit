@@ -8,6 +8,15 @@ import Glibc
 #endif
 
 #if canImport(Darwin) || canImport(Glibc)
+/// Whether PTY output checks cannot run. GitHub-hosted macOS runners do not deliver PTY output to the master side.
+private let isPTYOutputUnavailable: Bool = {
+  #if os(macOS)
+  ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] == "true"
+  #else
+  false
+  #endif
+}()
+
 struct TermKitPlayerSmokeTests {
   private let activation = "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1002h\u{1B}[?1006h\u{1B}[?1004h"
   private let restoration =
@@ -16,7 +25,10 @@ struct TermKitPlayerSmokeTests {
       + "\u{1B}[?1005l\u{1B}[?1006l\u{1B}[?1015l\u{1B}[?1016l"
       + "\u{1B}[?2004l\u{1B}[?25h\u{1B}[0m\u{1B}[?1049l"
 
-  @Test(.timeLimit(.minutes(1)))
+  @Test(
+    .timeLimit(.minutes(1)),
+    .disabled(if: isPTYOutputUnavailable, "PTY output does not reach the master side on GitHub-hosted macOS runners.")
+  )
   func `Player starts, handles input and resize, and restores a PTY`() throws {
     let pty = try PTYPair(columns: 120, rows: 32)
     let executable = try testExecutableDirectory()
