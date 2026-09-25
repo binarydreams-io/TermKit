@@ -1677,6 +1677,8 @@ private struct FailingRuntimeView: RuntimeView {
   }
 }
 
+private let fakeEventSourceWaitQueue = DispatchQueue(label: "FakeRuntimeEventSource.wait", attributes: .concurrent)
+
 /// NSCondition protects every mutable field and serializes blocking waits.
 private final class FakeRuntimeEventSource: RuntimeEventSource, @unchecked Sendable {
   private let condition = NSCondition()
@@ -1734,7 +1736,7 @@ private final class FakeRuntimeEventSource: RuntimeEventSource, @unchecked Senda
 
   func waitForWaitCount(_ count: Int) async throws {
     try await withCheckedThrowingContinuation { continuation in
-      DispatchQueue.global().async { [self] in
+      fakeEventSourceWaitQueue.async { [self] in
         continuation.resume(with: Result { try waitForWaitCountBlocking(count) })
       }
     }

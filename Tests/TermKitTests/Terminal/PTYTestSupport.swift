@@ -10,6 +10,8 @@ import Darwin
 import Glibc
 #endif
 
+private let ptyReaderQueue = DispatchQueue(label: "PTYPair.reader", attributes: .concurrent)
+
 enum PTYTestError: Error {
   case posix(operation: String, errorCode: Int32)
   case timedOut(expectedByteCount: Int, receivedByteCount: Int)
@@ -184,7 +186,7 @@ final class PTYPair: @unchecked Sendable {
   ) throws -> (result: Result<Value, any Error>, output: [UInt8]) {
     let readResult = PTYReadResult()
     let finished = DispatchSemaphore(value: 0)
-    DispatchQueue.global().async { [self] in
+    ptyReaderQueue.async { [self] in
       readResult.store(
         Result {
           try readFromMaster(
@@ -223,7 +225,7 @@ final class PTYPair: @unchecked Sendable {
 
   private func readOutput(exactByteCount: Int, timeoutMilliseconds: Int32) async throws -> [UInt8] {
     try await withCheckedThrowingContinuation { continuation in
-      DispatchQueue.global().async { [self] in
+      ptyReaderQueue.async { [self] in
         continuation.resume(
           with: Result {
             try readFromMaster(exactByteCount: exactByteCount, timeoutMilliseconds: timeoutMilliseconds)

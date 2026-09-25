@@ -16,13 +16,16 @@ public protocol RuntimeEventSource: Sendable {
 
 extension TerminalEventSource: RuntimeEventSource {}
 
-/// Waits for the next event on a Dispatch thread, outside the cooperative thread pool.
+/// A queue for blocking event reads. Custom queues always get a thread, even when the global queues are saturated.
+private let runtimeEventWaitQueue = DispatchQueue(label: "TermKit.Runtime.eventWait", attributes: .concurrent)
+
+/// Waits for the next event on a dedicated Dispatch queue, outside the cooperative thread pool.
 private func nextRuntimeEvent(
   from eventSource: any RuntimeEventSource,
   timeout: TimeSpan?
 ) async throws -> TerminalRuntimeEvent? {
   try await withCheckedThrowingContinuation { continuation in
-    DispatchQueue.global().async {
+    runtimeEventWaitQueue.async {
       continuation.resume(with: Result { try eventSource.nextEvent(timeout: timeout) })
     }
   }

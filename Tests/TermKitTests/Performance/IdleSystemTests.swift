@@ -35,7 +35,7 @@ extension TerminalEventSourceTests {
     let source = try TerminalEventSource(inputFileDescriptor: inputReadDescriptor)
     let finished = DispatchGroup()
     finished.enter()
-    DispatchQueue.global().async {
+    DispatchQueue(label: "IdleSystemTests.eventWait").async {
       let outcome: UInt8
       do {
         outcome = try source.nextEvent(timeout: nil) == .wake ? 1 : 2
