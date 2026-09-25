@@ -8,6 +8,7 @@ import Glibc
 #endif
 
 #if canImport(Darwin) || canImport(Glibc)
+@Suite(.disabled(if: isPTYOutputUnavailable, "PTY output does not reach the master side on GitHub-hosted macOS runners."))
 struct TerminalPTYIntegrationTests {
   private let activation = Array(
     "\u{1B}[?1049h\u{1B}[?25l\u{1B}[?2004h\u{1B}[?1002h\u{1B}[?1006h\u{1B}[?1004h".utf8

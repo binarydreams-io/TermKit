@@ -256,7 +256,7 @@ struct TerminalEventSourceTests {
   }
 
   #if canImport(Darwin) || canImport(Glibc)
-  @Test
+  @Test(.disabled(if: isPTYOutputUnavailable, "PTY output does not reach the master side on GitHub-hosted macOS runners."))
   func `Termination signal restores PTY state through the event source`() throws {
     let pty = try PTYPair()
     let originalAttributes = try pty.attributesSnapshot()
@@ -279,7 +279,7 @@ struct TerminalEventSourceTests {
     source = nil
   }
 
-  @Test
+  @Test(.disabled(if: isPTYOutputUnavailable, "PTY output does not reach the master side on GitHub-hosted macOS runners."))
   func `Suspend and resume signals restore and reactivate a PTY session`() throws {
     let pty = try PTYPair()
     let originalAttributes = try pty.attributesSnapshot()

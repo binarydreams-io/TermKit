@@ -12,6 +12,15 @@ import Glibc
 
 private let ptyReaderQueue = DispatchQueue(label: "PTYPair.reader", attributes: .concurrent)
 
+/// Whether PTY output checks cannot run. GitHub-hosted macOS runners do not deliver PTY output to the master side.
+let isPTYOutputUnavailable: Bool = {
+  #if os(macOS)
+  ProcessInfo.processInfo.environment["GITHUB_ACTIONS"] == "true"
+  #else
+  false
+  #endif
+}()
+
 enum PTYTestError: Error {
   case posix(operation: String, errorCode: Int32)
   case timedOut(expectedByteCount: Int, receivedByteCount: Int)
