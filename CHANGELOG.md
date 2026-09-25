@@ -2,7 +2,7 @@
 
 All notable changes appear in this file.
 
-## 3.0.0 - 2026-09-23
+## 3.0.0 - 2026-09-25
 
 ### Changed
 
