@@ -13,7 +13,7 @@ let package = Package(
   dependencies: [
     .package(
       url: "https://github.com/tayloraswift/swift-png",
-      exact: "4.5.1"
+      exact: "4.5.2"
     ),
     .package(
       url: "https://github.com/tayloraswift/swift-jpeg",
